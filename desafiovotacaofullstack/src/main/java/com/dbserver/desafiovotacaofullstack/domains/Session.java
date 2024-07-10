@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import com.dbserver.desafiovotacaofullstack.dtos.AgendaResponseDto;
 import com.dbserver.desafiovotacaofullstack.dtos.SessionResponseDto;
 
 import jakarta.persistence.Column;
@@ -82,7 +83,7 @@ public class Session implements Serializable {
 	}
 	
 	public SessionResponseDto entityToDto() {
-		return new SessionResponseDto(agenda.getId(), startTime, endTime);
+		return new SessionResponseDto(new AgendaResponseDto(agenda.getId(), agenda.getDescription()) , startTime, endTime);
 	}
 	
 }
