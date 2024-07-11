@@ -40,7 +40,6 @@ public class SessionService {
 			throw new RuntimeException("No session found with this topic");
 		
 		Session sessionAtualizado = session.get();
-		sessionAtualizado.setAgenda(agenda.get());
 		sessionAtualizado.setStartTime(sessionRequestDto.startTime());
 		sessionAtualizado.setEndTime(sessionRequestDto.endTime() != null ? sessionRequestDto.endTime() : sessionAtualizado.getEndTime());
 		return sessionRepository.save(sessionAtualizado).entityToDto();

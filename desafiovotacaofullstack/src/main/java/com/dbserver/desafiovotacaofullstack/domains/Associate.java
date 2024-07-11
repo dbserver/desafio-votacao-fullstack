@@ -3,6 +3,8 @@ package com.dbserver.desafiovotacaofullstack.domains;
 import java.io.Serializable;
 import java.util.Objects;
 
+import com.dbserver.desafiovotacaofullstack.dtos.AssociateResponseDto;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,6 +28,10 @@ public class Associate implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	private String name;
+	
+	public AssociateResponseDto entityToDto() {
+		return new AssociateResponseDto(id, name);
+	}
 	
 	@Override
 	public int hashCode() {

@@ -32,7 +32,6 @@ public class SessionController {
 		return new ResponseEntity<>(sessionService.updateSession(id, sessionRequestDto), HttpStatus.OK);
 	}
 	
-	
 	@GetMapping("/{id}/isOpen")
     public ResponseEntity<Boolean> isSessionOpen(@PathVariable Integer id) {
         boolean isOpen = sessionService.isSessionOpen(id);
