@@ -13,6 +13,7 @@ import com.dbserver.desafiovotacaofullstack.domains.Vote;
 import com.dbserver.desafiovotacaofullstack.dtos.TotalVotesDto;
 import com.dbserver.desafiovotacaofullstack.dtos.VoteRequestDto;
 import com.dbserver.desafiovotacaofullstack.dtos.VoteResponseDto;
+import com.dbserver.desafiovotacaofullstack.exceptions.ResourceNotFoundException;
 import com.dbserver.desafiovotacaofullstack.repositories.AssociateRepository;
 import com.dbserver.desafiovotacaofullstack.repositories.SessionRepository;
 import com.dbserver.desafiovotacaofullstack.repositories.VoteRepository;
@@ -59,10 +60,10 @@ public class VoteService {
 	public void preValidationCreateVote(Optional<Session> session, Optional<Associate> associate, VoteRequestDto voteRequestDto) {
 		
 		if(session.isEmpty())
-			throw new RuntimeException("Session not found");
+			throw new ResourceNotFoundException("Session not found");
 		
 		if(associate.isEmpty())
-			throw new RuntimeException("Associate not found");
+			throw new ResourceNotFoundException("Associate not found");
 		
 		if(!sessionService.isSessionOpen(session.get().getId()))
 			throw new RuntimeException("This session is closed");
