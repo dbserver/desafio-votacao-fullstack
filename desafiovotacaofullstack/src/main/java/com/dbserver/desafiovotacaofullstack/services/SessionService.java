@@ -24,7 +24,7 @@ public class SessionService {
 	public SessionResponseDto createSession(SessionRequestDto sessionRequestDto) {
 		Optional<Agenda> agenda = agendaRepository.findById(sessionRequestDto.idAgenda());
 		if(agenda.isEmpty())
-			throw new RuntimeException("No session found with this topic");
+			throw new RuntimeException("Nenhuma sessão encontrada com esta pauta.");
 		
 		return sessionRepository.save(new Session(agenda.get(), sessionRequestDto.startTime(), sessionRequestDto.endTime() != null ? sessionRequestDto.endTime() : sessionRequestDto.startTime().plusMinutes(1))).entityToDto();
 	}
@@ -33,11 +33,11 @@ public class SessionService {
 		
 		Optional<Session> session = sessionRepository.findById(id);
 		if(session.isEmpty())
-			throw new RuntimeException("Session not found");
+			throw new RuntimeException("Sessão não encontrada.");
 		
 		Optional<Agenda> agenda = agendaRepository.findById(sessionRequestDto.idAgenda());
 		if(agenda.isEmpty())
-			throw new RuntimeException("No session found with this topic");
+			throw new RuntimeException("Nenhuma sessão encontrada com esta pauta.");
 		
 		Session sessionAtualizado = session.get();
 		sessionAtualizado.setStartTime(sessionRequestDto.startTime());
@@ -47,7 +47,7 @@ public class SessionService {
 	
 	public boolean isSessionOpen(Integer id) {
         Session session = sessionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Session not found"));
+                .orElseThrow(() -> new RuntimeException("Sessão não encontrada."));
         return session.isOpen();
     }
 }

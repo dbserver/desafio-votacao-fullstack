@@ -15,6 +15,8 @@ import com.dbserver.desafiovotacaofullstack.dtos.SessionRequestDto;
 import com.dbserver.desafiovotacaofullstack.dtos.SessionResponseDto;
 import com.dbserver.desafiovotacaofullstack.services.SessionService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/sessions")
 public class SessionController {
@@ -23,12 +25,12 @@ public class SessionController {
 	SessionService sessionService;
 	
 	@PostMapping
-	public ResponseEntity<SessionResponseDto> createSession(@RequestBody SessionRequestDto sessionRequestDto){
+	public ResponseEntity<SessionResponseDto> createSession(@Valid @RequestBody SessionRequestDto sessionRequestDto){
 		return new ResponseEntity<>(sessionService.createSession(sessionRequestDto), HttpStatus.CREATED);
 	}
 	
 	@PutMapping("/{id}")
-	public ResponseEntity<SessionResponseDto> createSession(@PathVariable Integer id, @RequestBody SessionRequestDto sessionRequestDto){
+	public ResponseEntity<SessionResponseDto> createSession(@Valid @PathVariable Integer id, @RequestBody SessionRequestDto sessionRequestDto){
 		return new ResponseEntity<>(sessionService.updateSession(id, sessionRequestDto), HttpStatus.OK);
 	}
 	

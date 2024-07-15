@@ -18,6 +18,8 @@ import com.dbserver.desafiovotacaofullstack.dtos.AgendaRequestDto;
 import com.dbserver.desafiovotacaofullstack.dtos.AgendaResponseDto;
 import com.dbserver.desafiovotacaofullstack.services.AgendaService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/agendas")
 public class AgendaController {
@@ -26,12 +28,12 @@ public class AgendaController {
 	private AgendaService agendaService;
 	
 	@PostMapping
-	public ResponseEntity<AgendaResponseDto> createAgenda(@RequestBody AgendaRequestDto agendaRequestDto){
+	public ResponseEntity<AgendaResponseDto> createAgenda(@Valid @RequestBody AgendaRequestDto agendaRequestDto){
 		return new ResponseEntity<>(agendaService.createAgenda(agendaRequestDto), HttpStatus.CREATED);
 	}
 	
 	@PutMapping("/{id}")
-	public ResponseEntity<AgendaResponseDto> updateAgenda(@PathVariable Integer id, @RequestBody AgendaRequestDto agendaRequestDto){
+	public ResponseEntity<AgendaResponseDto> updateAgenda(@PathVariable Integer id, @Valid @RequestBody AgendaRequestDto agendaRequestDto){
 		return new ResponseEntity<>(agendaService.updateAgenda(id, agendaRequestDto), HttpStatus.OK);
 	}
 	

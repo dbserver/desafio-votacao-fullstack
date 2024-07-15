@@ -60,19 +60,19 @@ public class VoteService {
 	public void preValidationCreateVote(Optional<Session> session, Optional<Associate> associate, VoteRequestDto voteRequestDto) {
 		
 		if(session.isEmpty())
-			throw new ResourceNotFoundException("Session not found");
+			throw new ResourceNotFoundException("Sessão não encontrada.");
 		
 		if(associate.isEmpty())
-			throw new ResourceNotFoundException("Associate not found");
+			throw new ResourceNotFoundException("Associado não encontrado.");
 		
 		if(!sessionService.isSessionOpen(session.get().getId()))
-			throw new RuntimeException("This session is closed");
+			throw new RuntimeException("Está sessão está fechada.");
 		
 		if(!voteValid(voteRequestDto.response()))
-			throw new RuntimeException("Enter valid values: 'Yes' or 'No'");
+			throw new RuntimeException("Informe os valores válidos: 'SIM' ou 'NÃO'");
 		
 		if(voteRepository.existsByIdSessionIdAndIdAssociateId(session.get().getId(), associate.get().getId()))
-			throw new RuntimeException("There is already one vote from you for this issue");
+			throw new RuntimeException("Já existe um voto desse associado para está pauta.");
 		
 	}
 	

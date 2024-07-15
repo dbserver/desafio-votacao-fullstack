@@ -23,7 +23,7 @@ public class AgendaService {
 	
 	public AgendaResponseDto updateAgenda(Integer id, AgendaRequestDto agendaRequestDto) {
 		if(!agendaRepository.existsById(id)) 
-	         throw new RuntimeException("Agenda not found");
+	         throw new RuntimeException("Pauta não encontrada.");
 		
 		Agenda agenda = agendaRepository.findById(id).get();
 		agenda.setDescription(agendaRequestDto.description());
@@ -32,14 +32,14 @@ public class AgendaService {
 	
 	public void deleteAgenda(Integer id) {
         if (!agendaRepository.existsById(id)) {
-            throw new RuntimeException("Agenda not found");
+            throw new RuntimeException("Pauta não encontrada.");
         }
         agendaRepository.deleteById(id);
     }
 	
 	public AgendaResponseDto getAgendaById(Integer id) {
         Agenda agenda = agendaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Agenda not found"));
+                .orElseThrow(() -> new RuntimeException("Pauta não encontrada."));
         return agenda.entityToDto();
     }
 	

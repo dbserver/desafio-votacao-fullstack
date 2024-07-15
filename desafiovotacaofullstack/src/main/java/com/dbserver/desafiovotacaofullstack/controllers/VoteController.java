@@ -15,6 +15,8 @@ import com.dbserver.desafiovotacaofullstack.dtos.VoteRequestDto;
 import com.dbserver.desafiovotacaofullstack.dtos.VoteResponseDto;
 import com.dbserver.desafiovotacaofullstack.services.VoteService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/votes")
 public class VoteController {
@@ -23,7 +25,7 @@ public class VoteController {
 	VoteService voteService;
 	
 	@PostMapping
-	public ResponseEntity<VoteResponseDto> createVote(@RequestBody VoteRequestDto voteRequestDto) {
+	public ResponseEntity<VoteResponseDto> createVote(@Valid @RequestBody VoteRequestDto voteRequestDto) {
 		return new ResponseEntity<>(voteService.createVote(voteRequestDto), HttpStatus.CREATED);
 	}
 		

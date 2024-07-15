@@ -2,6 +2,13 @@ package com.dbserver.desafiovotacaofullstack.dtos;
 
 import java.time.LocalDateTime;
 
-public record SessionRequestDto(Integer idAgenda, LocalDateTime startTime, LocalDateTime endTime) {
+import jakarta.validation.constraints.NotNull;
+
+public record SessionRequestDto(
+		@NotNull(message = "Você deve informar a pauta.")
+		Integer idAgenda, 
+		@NotNull(message = "Você deve informar o tempo inicial.")
+		LocalDateTime startTime, 
+		LocalDateTime endTime) {
 
 }

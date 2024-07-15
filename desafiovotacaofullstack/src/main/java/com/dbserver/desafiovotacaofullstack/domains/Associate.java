@@ -28,11 +28,12 @@ public class Associate implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	private String name;
+	private String cpf;
 	
 	public AssociateResponseDto entityToDto() {
-		return new AssociateResponseDto(id, name);
+		return new AssociateResponseDto(id, name, cpf);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(id);
@@ -48,6 +49,11 @@ public class Associate implements Serializable {
 			return false;
 		Associate other = (Associate) obj;
 		return Objects.equals(id, other.id);
+	}
+
+	public Associate(String name, String cpf) {
+		this.name = name;
+		this.cpf = cpf;
 	}
 	
 }

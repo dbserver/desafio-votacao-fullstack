@@ -12,7 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dbserver.desafiovotacaofullstack.domains.Associate;
+import com.dbserver.desafiovotacaofullstack.dtos.AssociateRequestDto;
+import com.dbserver.desafiovotacaofullstack.dtos.AssociateResponseDto;
 import com.dbserver.desafiovotacaofullstack.services.AssociateService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/associate")
@@ -22,8 +26,8 @@ public class AssociateController {
 	AssociateService associateService;
 	
 	@PostMapping
-	public ResponseEntity<Associate> createAssociate(@RequestBody Associate associate) {
-		return new ResponseEntity<>(associateService.createAssociate(associate), HttpStatus.CREATED);
+	public ResponseEntity<AssociateResponseDto> createAssociate(@Valid @RequestBody AssociateRequestDto associateRequestDto) {
+		return new ResponseEntity<>(associateService.createAssociate(associateRequestDto), HttpStatus.CREATED);
 	}
 		
 	@GetMapping
