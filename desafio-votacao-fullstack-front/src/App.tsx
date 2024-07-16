@@ -25,6 +25,7 @@ function App() {
                 <Routes>
                     <Route path="/" index element={<Home />}></Route>
                     <Route path="/pautas" element={<Agenda />}></Route>
+                    <Route path="/sessoes" element={<Session />}></Route>
                     <Route path="/associates" element={<AssociateTable />}></Route>
                 </Routes>
             </BrowserRouter>

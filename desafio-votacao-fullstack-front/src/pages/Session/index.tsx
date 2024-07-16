@@ -1,16 +1,15 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Button, Form, Table, Modal } from "react-bootstrap";
+import { Button, Form, Table, Modal, Card , ProgressBar, Container, Row, Col  } from "react-bootstrap";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import VoteResponse from "../Vote/VoteResponse";
 interface Session {
-    id: number;
-    idAgenda: number;
-    descriptionAgenda: string;
+    agendaResponseDto: Agenda;
     startTime: Dayjs;
     endTime: Dayjs;
 }
@@ -25,12 +24,13 @@ function Session(){
     const navigate = useNavigate()
     const location = useLocation();
     const { idAgendaRedirec } = location.state;
-    const [sessions, setSessions] = useState<Session[]>([]);
+    const [sessions, setSessions] = useState<Session | null>(null);
     const [idAgenda, setIdAgenda] = useState<number | null>(idAgendaRedirec);
     const [agendas, setAgendas] = useState<Agenda[]>([]);
     const [startTime, setStartTime] = useState<Dayjs | null>(null);
     const [endTime, setEndTime] = useState<Dayjs | null>(null);
     const [show, setShow] = useState<boolean>(false);
+    const [showVote, setShowVote] = useState<boolean>(false);
 
     const formatDateTimeForAPI = (date: Dayjs | null): string => {
         return date ? dayjs(date).format('YYYY-MM-DDTHH:mm:ss') : '';
@@ -45,7 +45,7 @@ function Session(){
         findAllAgendas();
     }, []);
 
-    const createSession = async  (event: React.FormEvent<HTMLFormElement>) => {
+    const createSession = async  (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         event.preventDefault();
 
         try {
@@ -60,7 +60,8 @@ function Session(){
 
     const findAllSession = async () => {
         try {
-            const response = await axios.get<Session[]>('http://localhost:8080/api/sessions'); 
+            const response = await axios.get<Session>(`http://localhost:8080/api/sessions/agenda/${idAgenda}/`); 
+            console.log(response.data)
             setSessions(response.data);
         } catch (error) {
             console.error('Erro ao buscar itens:', error);
@@ -92,35 +93,34 @@ function Session(){
         navigate(-1); 
     };
 
-    const handleVote = (session: Session) => {
-
-    }
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
+
+    const handleCloseVote = () => setShowVote(false);
+    const handleShowVote = () => setShowVote(true);
 
     return (
         <div>
             <h1>Sessões</h1>
 
             <>
-            <h3>Pautas</h3>
 
             <Button variant="secondary" onClick={() => handleGoBack()}>
                 Voltar
             </Button>
 
-            <Button variant="warning" onClick={() => handleShow()}>
+            <Button disabled={sessions !== null ? true : false} variant="warning" onClick={() => handleShow()}>
                 Novo
             </Button>
-            
-                <Modal show={show} onHide={handleClose}>
+
+            <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>Cadastrar Sessão</Modal.Title>
                     </Modal.Header>
 
                     <Modal.Body>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <Form onSubmit={createSession}>
+                            <Form>
                                     <Form.Group className="mb-3">
                                         <Form.Label>Pautas:</Form.Label>
                                         <Form.Select id="optionAgenda" value={idAgenda || ''} onChange={(e) => setIdAgenda(Number(e.target.value))}>
@@ -154,11 +154,22 @@ function Session(){
                     </Modal.Body>
 
                     <Modal.Footer>
-                        <Button variant="success" type="submit">
+                        <Button variant="success" type="submit" onClick={createSession}>
                             Cadastrar Sessão
                         </Button>
                     </Modal.Footer>
                 </Modal>
+            
+            <Modal show={showVote} onHide={handleCloseVote}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Cadastrar Sessão</Modal.Title>
+                </Modal.Header>
+
+                <Modal.Body>
+                    <VoteResponse idSessionProps={idAgendaRedirec} />
+                </Modal.Body>
+
+            </Modal>
            
             <Table striped bordered hover>
                 <thead>
@@ -170,21 +181,28 @@ function Session(){
                     </tr>
                 </thead>
                 <tbody>
-                    {
-                        sessions.map((session) => (
-                            <tr key={session.id}>
-                                <td>{session.id}</td>
-                                <td>{session.descriptionAgenda}</td>
-                                <td>{formatDateTimeForLayout(session.startTime)}</td>
-                                <td>{formatDateTimeForLayout(session.endTime)}</td>
-                                <td>
-                                    <Button variant="primary" onClick={() => handleVote(session)}>
-                                        Votar
-                                    </Button>
-                                </td>
-                            </tr>
-                        ))
-                    }
+
+            
+                    <tr key={sessions?.agendaResponseDto.id}>
+                        <td>{sessions?.agendaResponseDto.id}</td>
+                        <td>{sessions?.agendaResponseDto.description}</td>
+                        <td>{formatDateTimeForLayout(sessions?.startTime ?? null)}</td>
+                        <td>{formatDateTimeForLayout(sessions?.endTime ?? null)}</td>
+
+                        <td>
+                            <Button variant="primary">
+                                Votos
+                            </Button>
+                        </td>
+                               
+                        <td>
+                            <Button variant="primary" onClick={() => handleShowVote()}>
+                                Votar
+                            </Button>
+                        </td> 
+                    </tr>
+      
+        
                 </tbody>
             </Table>
         </>

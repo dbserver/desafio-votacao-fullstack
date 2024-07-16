@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Button, Form, Table, Modal } from "react-bootstrap";
 import { useNavigate } from 'react-router-dom';
+import ErrorModal from "../../Components/Modal/ErrorModal/ErrorModal";
 interface Agenda {
     id: number;
     description: string;
@@ -14,6 +15,17 @@ function Agenda(){
     const [description, setDescription] = useState<string>('');
     const [editItem, setEditItem] = useState<Agenda | null>(null);
     const [show, setShow] = useState<boolean>(false);
+    const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string>('');
+
+    const handleError = (error: string) => {
+        setErrorMessage(error);
+        setShowErrorModal(true);
+    };
+    
+    const handleCloseError = () => {
+        setShowErrorModal(false);
+    };
 
     useEffect(() => {
         findAllAgendas();
@@ -32,7 +44,11 @@ function Agenda(){
             findAllAgendas(); 
             cleanState();
         } catch (error) {
-            console.error('Erro ao salvar item:', error);
+            if (axios.isAxiosError(error)) {
+                handleError(error.response?.data?.title || 'Ocorreu um erro ao processar sua solicitação.');
+            } else {
+                handleError('Erro desconhecido.');
+            }
         }
     }
 
@@ -45,7 +61,11 @@ function Agenda(){
             const response = await axios.get<Agenda[]>('http://localhost:8080/api/agendas'); 
             setAgendas(response.data);
         } catch (error) {
-            console.error('Erro ao buscar itens:', error);
+            if (axios.isAxiosError(error)) {
+                handleError(error.response?.data?.title || 'Ocorreu um erro ao processar sua solicitação.');
+            } else {
+                handleError('Erro desconhecido.');
+            }
         }
     };
 
@@ -108,6 +128,7 @@ function Agenda(){
                     }
                 </tbody>
             </Table>
+            <ErrorModal show={showErrorModal} handleClose={handleCloseError} errorMessage={errorMessage} />
         </>
 
     )
