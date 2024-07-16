@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.dbserver.desafiovotacaofullstack.domains.Agenda;
 import com.dbserver.desafiovotacaofullstack.dtos.AgendaRequestDto;
 import com.dbserver.desafiovotacaofullstack.dtos.AgendaResponseDto;
+import com.dbserver.desafiovotacaofullstack.exceptions.ResourceNotFoundException;
 import com.dbserver.desafiovotacaofullstack.repositories.AgendaRepository;
 
 @Service
@@ -23,7 +24,7 @@ public class AgendaService {
 	
 	public AgendaResponseDto updateAgenda(Integer id, AgendaRequestDto agendaRequestDto) {
 		if(!agendaRepository.existsById(id)) 
-	         throw new RuntimeException("Pauta não encontrada.");
+	         throw new ResourceNotFoundException("Pauta não encontrada.");
 		
 		Agenda agenda = agendaRepository.findById(id).get();
 		agenda.setDescription(agendaRequestDto.description());
@@ -32,14 +33,14 @@ public class AgendaService {
 	
 	public void deleteAgenda(Integer id) {
         if (!agendaRepository.existsById(id)) {
-            throw new RuntimeException("Pauta não encontrada.");
+            throw new ResourceNotFoundException("Pauta não encontrada.");
         }
         agendaRepository.deleteById(id);
     }
 	
 	public AgendaResponseDto getAgendaById(Integer id) {
         Agenda agenda = agendaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pauta não encontrada."));
+                .orElseThrow(() -> new ResourceNotFoundException("Pauta não encontrada."));
         return agenda.entityToDto();
     }
 	

@@ -5,6 +5,7 @@ import java.io.Serializable;
 import com.dbserver.desafiovotacaofullstack.dtos.VoteResponseDto;
 import com.dbserver.desafiovotacaofullstack.embeddables.SessionAssociateId;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -22,6 +23,7 @@ public class Vote implements Serializable {
 	private static final long serialVersionUID = 1L;
 	@EmbeddedId
     private SessionAssociateId id;
+	@Column
 	private String response;
 	
 	public VoteResponseDto entityToDto() {

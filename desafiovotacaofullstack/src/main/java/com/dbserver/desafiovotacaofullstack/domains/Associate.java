@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import com.dbserver.desafiovotacaofullstack.dtos.AssociateResponseDto;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -27,7 +28,9 @@ public class Associate implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
+	@Column
 	private String name;
+	@Column
 	private String cpf;
 	
 	public AssociateResponseDto entityToDto() {

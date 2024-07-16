@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import com.dbserver.desafiovotacaofullstack.dtos.ErrorResponseDto;
-import com.dbserver.desafiovotacaofullstack.utils.FormatStackTracerException;
 
 @ControllerAdvice
 public class ExceptionHandler {
@@ -16,7 +15,7 @@ public class ExceptionHandler {
 	@org.springframework.web.bind.annotation.ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleNullPointerException(ResourceNotFoundException exception, WebRequest request) {
 		String endpoint = request.getDescription(false);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseDto(exception.getMessage(), HttpStatus.NOT_FOUND.value(),FormatStackTracerException.getFormatStackTracer(exception.getStackTrace()), endpoint));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponseDto(exception.getMessage(), HttpStatus.NOT_FOUND.value(),"", endpoint));
     }
 	
 	@org.springframework.web.bind.annotation.ExceptionHandler(BadRequestException.class)
@@ -35,6 +34,12 @@ public class ExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleGenericException(Exception exception, WebRequest request) {
 		String endpoint = request.getDescription(false);
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseDto("Erro interno no servidor", HttpStatus.INTERNAL_SERVER_ERROR.value(),"", endpoint));
+    }
+	
+	@org.springframework.web.bind.annotation.ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponseDto> handleGenericException(ForbiddenException exception, WebRequest request) {
+		String endpoint = request.getDescription(false);
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponseDto("Não autorizado devido a sessão estar fechada.", HttpStatus.FORBIDDEN.value(),"", endpoint));
     }
 	
 	@org.springframework.web.bind.annotation.ExceptionHandler(MethodArgumentNotValidException.class)

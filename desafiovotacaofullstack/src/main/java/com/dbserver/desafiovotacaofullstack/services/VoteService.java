@@ -13,6 +13,8 @@ import com.dbserver.desafiovotacaofullstack.domains.Vote;
 import com.dbserver.desafiovotacaofullstack.dtos.TotalVotesDto;
 import com.dbserver.desafiovotacaofullstack.dtos.VoteRequestDto;
 import com.dbserver.desafiovotacaofullstack.dtos.VoteResponseDto;
+import com.dbserver.desafiovotacaofullstack.exceptions.ConflitDuplicateKeyException;
+import com.dbserver.desafiovotacaofullstack.exceptions.ForbiddenException;
 import com.dbserver.desafiovotacaofullstack.exceptions.ResourceNotFoundException;
 import com.dbserver.desafiovotacaofullstack.repositories.AssociateRepository;
 import com.dbserver.desafiovotacaofullstack.repositories.SessionRepository;
@@ -57,30 +59,30 @@ public class VoteService {
 		return responseValid.equals(VOTE_POSITIVE) || responseValid.equals(VOTE_NEGATIVE);
 	}
 	
-	public void preValidationCreateVote(Optional<Session> session, Optional<Associate> associate, VoteRequestDto voteRequestDto) {
+	public void preValidationCreateVote(Optional<Session> session, Associate associate, VoteRequestDto voteRequestDto) {
 		
 		if(session.isEmpty())
 			throw new ResourceNotFoundException("Sessão não encontrada.");
 		
-		if(associate.isEmpty())
+		if(associate == null)
 			throw new ResourceNotFoundException("Associado não encontrado.");
 		
 		if(!sessionService.isSessionOpen(session.get().getId()))
-			throw new RuntimeException("Está sessão está fechada.");
+			throw new ForbiddenException("Está sessão está fechada.");
 		
 		if(!voteValid(voteRequestDto.response()))
 			throw new RuntimeException("Informe os valores válidos: 'SIM' ou 'NÃO'");
 		
-		if(voteRepository.existsByIdSessionIdAndIdAssociateId(session.get().getId(), associate.get().getId()))
-			throw new RuntimeException("Já existe um voto desse associado para está pauta.");
+		if(voteRepository.existsByIdSessionIdAndIdAssociateId(session.get().getId(), associate.getId()))
+			throw new ConflitDuplicateKeyException("Já existe um voto desse associado para está pauta.");
 		
 	}
 	
 	public VoteResponseDto saveVotePosValidation(VoteRequestDto voteRequestDto) {
 		Optional<Session> session = sessionRepository.findById(voteRequestDto.idSession());
-		Optional<Associate> associate = associateRepository.findById(voteRequestDto.idAssociate());
+		Associate associate = associateRepository.findByCpf(voteRequestDto.cpfAssociate());
 		preValidationCreateVote(session, associate, voteRequestDto);
-		Vote vote = voteRepository.save(new Vote(session.get(), associate.get(), voteRequestDto.response().trim().toUpperCase()));
+		Vote vote = voteRepository.save(new Vote(session.get(), associate, voteRequestDto.response().trim().toUpperCase()));
 		return vote.entityToDto();
 	}
 	
