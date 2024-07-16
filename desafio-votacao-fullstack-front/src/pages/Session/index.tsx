@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import VoteResponse from "../Vote/VoteResponse";
 interface Session {
+    id: number;
     agendaResponseDto: Agenda;
     startTime: Dayjs;
     endTime: Dayjs;
@@ -170,8 +171,11 @@ function Session(){
                 </Modal.Body>
 
             </Modal>
-           
-            <Table striped bordered hover>
+
+            {
+                sessions ?
+
+                <Table striped bordered hover>
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -204,7 +208,11 @@ function Session(){
       
         
                 </tbody>
-            </Table>
+            </Table> : 
+            <p>Não há sessão cadastrada ainda para está pauta.</p>
+            }
+           
+            
         </>
         </div>
     )
