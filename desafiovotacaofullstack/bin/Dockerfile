@@ -1,7 +1,4 @@
 FROM eclipse-temurin:21-jdk-jammy
-
-ENV TZ=America/Sao_Paulo
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 WORKDIR /app
 
 COPY mvnw .
@@ -17,3 +14,5 @@ RUN ./mvnw clean install -DskipTests
 EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "target/desafiovotacaofullstack-0.0.1-SNAPSHOT.jar"]
+
+
