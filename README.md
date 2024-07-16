@@ -1,3 +1,9 @@
+# Build
+
+- Requisitos: Tem que ter o docker instalado no servidor.
+- Para rodar o projeto na nuvem é só navegar até a raiz do projeto no terminal do sistema operacional e executar o seguinte comando:
+-  "./start.sh" -> Executar esse arquivo .sh
+  
 # Votação
 
 ## Objetivo
