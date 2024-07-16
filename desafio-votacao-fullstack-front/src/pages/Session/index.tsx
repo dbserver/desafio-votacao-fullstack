@@ -14,7 +14,6 @@ interface Session {
     startTime: Dayjs;
     endTime: Dayjs;
 }
-
 export interface Agenda{
     id: number;
     description: string;
@@ -163,7 +162,7 @@ function Session(){
             
             <Modal show={showVote} onHide={handleCloseVote}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Cadastrar Sessão</Modal.Title>
+                    <Modal.Title>Votar</Modal.Title>
                 </Modal.Header>
 
                 <Modal.Body>
@@ -192,12 +191,6 @@ function Session(){
                         <td>{sessions?.agendaResponseDto.description}</td>
                         <td>{formatDateTimeForLayout(sessions?.startTime ?? null)}</td>
                         <td>{formatDateTimeForLayout(sessions?.endTime ?? null)}</td>
-
-                        <td>
-                            <Button variant="primary">
-                                Votos
-                            </Button>
-                        </td>
                                
                         <td>
                             <Button variant="primary" onClick={() => handleShowVote()}>

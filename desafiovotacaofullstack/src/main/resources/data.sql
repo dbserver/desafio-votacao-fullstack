@@ -6,4 +6,4 @@ INSERT INTO associate (name, cpf) VALUES
 
 INSERT INTO agenda (description) VALUES
 ('Você faria um curso gratuito de programação?'),
-('Você possue uma lado politico?');
+('Você possui um lado político?');

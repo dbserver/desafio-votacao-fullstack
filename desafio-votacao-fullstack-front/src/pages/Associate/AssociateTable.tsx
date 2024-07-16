@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Button, Form, Table } from "react-bootstrap"
+import { Button, Form, Table, Modal } from "react-bootstrap"
 
 export interface Associate {
     id: number;
@@ -14,12 +14,13 @@ const AssociateTable = () => {
     const [name, setName] = useState<string>('');
     const [cpf, setCpf] = useState<string>('');
     const [editItem, setEditItem] = useState<Associate | null>(null);
+    const [show, setShow] = useState<boolean>(false);
 
     useEffect(() => {
         findAllAssociates();
     }, []);
 
-    const createAssociate = async  (event: React.FormEvent<HTMLFormElement>) => {
+    const createAssociate = async  (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         event.preventDefault();
         try {
             if (editItem) {
@@ -30,6 +31,7 @@ const AssociateTable = () => {
             }
             findAllAssociates(); 
             cleanState();
+            handleClose();
         } catch (error) {
             console.error('Erro ao salvar item:', error);
         }
@@ -54,24 +56,43 @@ const AssociateTable = () => {
         setName(associate.name); 
         setCpf(associate.cpf)
     };
+
+    const handleClose = () => setShow(false);
+    const handleShow = () => setShow(true);
     
     return (
         <>
-            <Form onSubmit={createAssociate}>
-                <Form.Group className="mb-3" controlId="formBasicName">
-                    <Form.Label>Nome</Form.Label>
-                    <Form.Control type="text" placeholder="Informe o nome do associado." value={name} onChange={(e) => setName(e.target.value)}/>
-                </Form.Group>
-
-                <Form.Group className="mb-3" controlId="formBasicCpf">
-                    <Form.Label>CPF</Form.Label>
-                    <Form.Control type="text" placeholder="Informe o CPF do associado." value={cpf} onChange={(e) => setName(e.target.value)}/>
-                </Form.Group>
-
-                <Button variant="success" type="submit">
-                    Cadastrar Associado
+                 <Button variant="warning" onClick={() => handleShow()}>
+                    Novo
                 </Button>
-            </Form>
+                <Modal show={show} onHide={handleClose}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Cadastrar Pauta</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Body>
+                        <Form>
+                            <Form.Group className="mb-3" controlId="formBasicName">
+                                <Form.Label>Nome</Form.Label>
+                                <Form.Control type="text" placeholder="Informe o nome do associado." value={name} onChange={(e) => setName(e.target.value)}/>
+                            </Form.Group>
+
+                            <Form.Group className="mb-3" controlId="formBasicCpf">
+                                <Form.Label>CPF</Form.Label>
+                                <Form.Control type="text" placeholder="Informe o CPF do associado." value={cpf} onChange={(e) => setCpf(e.target.value)}/>
+                            </Form.Group>
+
+                            
+                        </Form>
+                    </Modal.Body>
+
+                    <Modal.Footer>
+                        <Button variant="success" type="submit" onClick={createAssociate}>
+                            Cadastrar Associado
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            
 
             <Table striped bordered hover>
                 <thead>
@@ -88,11 +109,6 @@ const AssociateTable = () => {
                                 <td>{associate.id}</td>
                                 <td>{associate.name}</td>
                                 <td>{associate.cpf}</td>
-                                <td>
-                                    <Button variant="primary" onClick={() => handleEdit(associate)}>
-                                        Editar
-                                    </Button>
-                                </td>
                             </tr>
                         ))
                     }

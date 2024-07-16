@@ -32,8 +32,9 @@ const VoteResponse = (props: any) => {
     const [response, setResponse] = useState<string | null>(null);
     const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
-    var yesPercentage = 0;
-    var noPercentage = 0;
+    const [yesPercentage, setYesPercentage] = useState<number>(0);
+    const [noPercentage, setNoPercentage] = useState<number>(0);
+
 
     const handleError = (error: string) => {
         setErrorMessage(error);
@@ -69,8 +70,8 @@ const VoteResponse = (props: any) => {
         try {
             const response = await axios.get<Votes>(`http://localhost:8080/api/votes/session/${props.idSessionProps}`); 
             const totalVotes = response.data.totalVotes
-            yesPercentage = totalVotes ? (response.data.totalVotesSim / totalVotes) * 100 : 0;
-            noPercentage = totalVotes ? (response.data.totalVotesNao / totalVotes) * 100 : 0;
+            setYesPercentage((totalVotes > 0 &&  response.data.totalVotesSim > 0) ? (response.data.totalVotesSim / totalVotes) * 100 : 0);
+            setNoPercentage((totalVotes > 0 && response.data.totalVotesNao) ? (response.data.totalVotesNao / totalVotes) * 100 : 0);
             setVotes(response.data);
         } catch (error) {
             if (axios.isAxiosError(error)) {
@@ -123,12 +124,12 @@ const VoteResponse = (props: any) => {
                     </Row>
                     <Row className="my-3">
                         <Col>
-                        <ProgressBar now={votes?.totalVotesSim} label={`Sim: ${yesPercentage.toFixed(2)}%`} variant="success" />
+                        <ProgressBar now={yesPercentage} label={`Sim: ${yesPercentage.toFixed(2)}%`} variant="success" />
                         </Col>
                     </Row>
                     <Row className="my-3">
                         <Col>
-                        <ProgressBar now={votes?.totalVotesNao} label={`Não: ${noPercentage.toFixed(2)}%`} variant="danger" />
+                        <ProgressBar now={noPercentage} label={`Não: ${noPercentage.toFixed(2)}%`} variant="danger" />
                         </Col>
                     </Row>
                     <Row className="my-3">
