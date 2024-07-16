@@ -2,6 +2,6 @@ package com.dbserver.desafiovotacaofullstack.dtos;
 
 import java.time.LocalDateTime;
 
-public record SessionResponseDto(AgendaResponseDto agendaResponseDto, LocalDateTime startTime, LocalDateTime endTime) {
+public record SessionResponseDto(Integer id, AgendaResponseDto agendaResponseDto, LocalDateTime startTime, LocalDateTime endTime) {
 
 }

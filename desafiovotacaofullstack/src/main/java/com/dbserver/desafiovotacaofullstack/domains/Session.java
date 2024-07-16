@@ -83,7 +83,7 @@ public class Session implements Serializable {
 	}
 	
 	public SessionResponseDto entityToDto() {
-		return new SessionResponseDto(new AgendaResponseDto(agenda.getId(), agenda.getDescription()) , startTime, endTime);
+		return new SessionResponseDto(id, new AgendaResponseDto(agenda.getId(), agenda.getDescription()) , startTime, endTime);
 	}
 	
 }
