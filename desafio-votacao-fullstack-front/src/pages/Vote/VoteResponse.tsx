@@ -21,7 +21,7 @@ interface Votes {
 
 const VoteResponse = (props: any) => {
 
-    // --------
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     const [optionVotes, setOptionVotes] = useState<OptionVotes>({ yes: 0, no: 0 });
     const [hasVoted, setHasVoted] = useState<boolean>(false);
@@ -45,8 +45,6 @@ const VoteResponse = (props: any) => {
         setShowErrorModal(false);
       };
 
-    /// --------
-
     
     useEffect(() => {
         findAllVotes();
@@ -54,7 +52,7 @@ const VoteResponse = (props: any) => {
 
     const createVote = async  (OpcaoDeVoto: String) => {
         try {
-            await axios.post('http://localhost:8080/api/votes', { idSession: props.idSessionProps, cpfAssociate: cpfAssociate, response: OpcaoDeVoto }); 
+            await axios.post(`${apiUrl}/api/votes`, { idSession: props.idSessionProps, cpfAssociate: cpfAssociate, response: OpcaoDeVoto }); 
             findAllVotes(); 
             cleanState();
         } catch (error) {
@@ -68,7 +66,7 @@ const VoteResponse = (props: any) => {
 
     const findAllVotes = async () => {
         try {
-            const response = await axios.get<Votes>(`http://localhost:8080/api/votes/session/${props.idSessionProps}`); 
+            const response = await axios.get<Votes>(`${apiUrl}/api/votes/session/${props.idSessionProps}`); 
             const totalVotes = response.data.totalVotes
             setYesPercentage((totalVotes > 0 &&  response.data.totalVotesSim > 0) ? (response.data.totalVotesSim / totalVotes) * 100 : 0);
             setNoPercentage((totalVotes > 0 && response.data.totalVotesNao) ? (response.data.totalVotesNao / totalVotes) * 100 : 0);

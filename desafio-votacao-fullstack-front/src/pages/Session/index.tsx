@@ -21,6 +21,8 @@ export interface Agenda{
 
 function Session(){
 
+    const apiUrl = process.env.REACT_APP_API_URL;
+
     const navigate = useNavigate()
     const location = useLocation();
     const { idAgendaRedirec } = location.state;
@@ -49,7 +51,7 @@ function Session(){
         event.preventDefault();
 
         try {
-            await axios.post('http://localhost:8080/api/sessions', {idAgenda: idAgenda,startTime: formatDateTimeForAPI(startTime),endTime: formatDateTimeForAPI(endTime)}); 
+            await axios.post(`${apiUrl}/api/sessions`, {idAgenda: idAgenda,startTime: formatDateTimeForAPI(startTime),endTime: formatDateTimeForAPI(endTime)}); 
             handleClose();
             findAllSession(); 
             cleanState();
@@ -60,7 +62,7 @@ function Session(){
 
     const findAllSession = async () => {
         try {
-            const response = await axios.get<Session>(`http://localhost:8080/api/sessions/agenda/${idAgenda}/`); 
+            const response = await axios.get<Session>(`${apiUrl}/api/sessions/agenda/${idAgenda}/`); 
             console.log(response.data)
             setSessions(response.data);
         } catch (error) {
@@ -70,7 +72,7 @@ function Session(){
 
     const findAllAgendas = async () => {
         try {
-            const response = await axios.get<Agenda[]>('http://localhost:8080/api/agendas'); 
+            const response = await axios.get<Agenda[]>(`${apiUrl}/api/agendas`); 
             setAgendas(response.data);
         } catch (error) {
             console.error('Erro ao buscar itens:', error);

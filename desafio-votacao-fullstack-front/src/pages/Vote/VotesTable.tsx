@@ -15,6 +15,8 @@ interface Votes {
 
 function VoteTable(){
 
+    const apiUrl = process.env.REACT_APP_API_URL;
+
     const [votes, setVotes] = useState<Votes[]>([]);
     const [idSession, setIdSession] = useState<number | null>(null);
     const [agendas, setAgendas] = useState<Agenda[]>([]);
@@ -29,7 +31,7 @@ function VoteTable(){
         event.preventDefault();
         try {
    
-            await axios.post('http://localhost:8080/api/votes', { idSession: idSession, cpfAssociate: cpfAssociate, response: response }); 
+            await axios.post(`${apiUrl}/api/votes`, { idSession: idSession, cpfAssociate: cpfAssociate, response: response }); 
             findAllVotes(); 
             cleanState();
         } catch (error) {
@@ -39,7 +41,7 @@ function VoteTable(){
 
     const findAllVotes = async () => {
         try {
-            const response = await axios.get<Votes[]>('http://localhost:8080/api/votes'); 
+            const response = await axios.get<Votes[]>(`${apiUrl}/api/votes`); 
             setVotes(response.data);
         } catch (error) {
             console.error('Erro ao buscar itens:', error);

@@ -10,6 +10,8 @@ export interface Associate {
 
 const AssociateTable = () => {
 
+    const apiUrl = process.env.REACT_APP_API_URL;
+
     const [associates, setAssociates] = useState<Associate[]>([]);
     const [name, setName] = useState<string>('');
     const [cpf, setCpf] = useState<string>('');
@@ -24,10 +26,10 @@ const AssociateTable = () => {
         event.preventDefault();
         try {
             if (editItem) {
-                await axios.put(`http://localhost:8080/api/associate/${editItem.id}`, { name: name, cpf: cpf }); 
+                await axios.put(`${apiUrl}/api/associate/${editItem.id}`, { name: name, cpf: cpf }); 
                 setEditItem(null);
             } else {
-                await axios.post('http://localhost:8080/api/associate', { name: name, cpf: cpf  }); 
+                await axios.post(`${apiUrl}/api/associate`, { name: name, cpf: cpf  }); 
             }
             findAllAssociates(); 
             cleanState();
@@ -39,7 +41,7 @@ const AssociateTable = () => {
 
     const findAllAssociates = async () => {
         try {
-            const response = await axios.get<Associate[]>('http://localhost:8080/api/associate'); 
+            const response = await axios.get<Associate[]>(`${apiUrl}/api/associate`); 
             setAssociates(response.data);
         } catch (error) {
             console.error('Erro ao buscar itens:', error);

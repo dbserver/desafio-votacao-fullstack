@@ -10,6 +10,8 @@ interface Agenda {
 
 function Agenda(){
 
+    const apiUrl = process.env.REACT_APP_API_URL;
+
     const navigate = useNavigate();
     const [agendas, setAgendas] = useState<Agenda[]>([]);
     const [description, setDescription] = useState<string>('');
@@ -35,10 +37,10 @@ function Agenda(){
         event.preventDefault();
         try {
             if (editItem) {
-                await axios.put(`http://localhost:8080/api/agendas/${editItem.id}`, { description: description }); 
+                await axios.put(`${apiUrl}/api/agendas/${editItem.id}`, { description: description }); 
                 setEditItem(null);
             } else {
-                await axios.post('http://localhost:8080/api/agendas', { description: description }); 
+                await axios.post(`${apiUrl}/api/agendas`, { description: description }); 
             }
             handleClose();
             findAllAgendas(); 
@@ -58,7 +60,7 @@ function Agenda(){
 
     const findAllAgendas = async () => {
         try {
-            const response = await axios.get<Agenda[]>('http://localhost:8080/api/agendas'); 
+            const response = await axios.get<Agenda[]>(`${apiUrl}/api/agendas`); 
             setAgendas(response.data);
         } catch (error) {
             if (axios.isAxiosError(error)) {
