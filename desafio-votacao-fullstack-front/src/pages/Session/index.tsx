@@ -8,6 +8,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import VoteResponse from "../Vote/VoteResponse";
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 interface Session {
     id: number;
     agendaResponseDto: Agenda;
@@ -20,8 +21,6 @@ export interface Agenda{
 }
 
 function Session(){
-
-    const apiUrl = process.env.REACT_APP_API_URL;
 
     const navigate = useNavigate()
     const location = useLocation();

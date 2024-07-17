@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Button, Form, Table, Modal } from "react-bootstrap"
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 export interface Associate {
     id: number;
@@ -9,8 +10,6 @@ export interface Associate {
 }
 
 const AssociateTable = () => {
-
-    const apiUrl = process.env.REACT_APP_API_URL;
 
     const [associates, setAssociates] = useState<Associate[]>([]);
     const [name, setName] = useState<string>('');

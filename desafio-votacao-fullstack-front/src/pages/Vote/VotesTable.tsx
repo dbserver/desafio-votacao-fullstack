@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Button, Form, Table } from "react-bootstrap"
 import { Associate } from "../Associate/AssociateTable";
 import { Agenda } from "../Session";
-
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 interface Votes {
     totalVotes: number;
     totalVotesSim: number;
@@ -14,8 +14,6 @@ interface Votes {
 }
 
 function VoteTable(){
-
-    const apiUrl = process.env.REACT_APP_API_URL;
 
     const [votes, setVotes] = useState<Votes[]>([]);
     const [idSession, setIdSession] = useState<number | null>(null);

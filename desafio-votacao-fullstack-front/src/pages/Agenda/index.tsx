@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Button, Form, Table, Modal } from "react-bootstrap";
 import { useNavigate } from 'react-router-dom';
 import ErrorModal from "../../Components/Modal/ErrorModal/ErrorModal";
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 interface Agenda {
     id: number;
     description: string;
@@ -10,7 +11,7 @@ interface Agenda {
 
 function Agenda(){
 
-    const apiUrl = process.env.REACT_APP_API_URL;
+    console.log(apiUrl)
 
     const navigate = useNavigate();
     const [agendas, setAgendas] = useState<Agenda[]>([]);

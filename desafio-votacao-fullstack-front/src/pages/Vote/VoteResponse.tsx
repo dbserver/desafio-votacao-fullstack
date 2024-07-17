@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Associate } from "../Associate/AssociateTable";
 import { Agenda } from "../Session";
 import ErrorModal from "../../Components/Modal/ErrorModal/ErrorModal";
+const apiUrl = import.meta.env.VITE_APP_API_URL;
 
 interface OptionVotes {
     yes: number;
@@ -20,8 +21,6 @@ interface Votes {
 }
 
 const VoteResponse = (props: any) => {
-
-    const apiUrl = process.env.REACT_APP_API_URL;
 
     const [optionVotes, setOptionVotes] = useState<OptionVotes>({ yes: 0, no: 0 });
     const [hasVoted, setHasVoted] = useState<boolean>(false);
