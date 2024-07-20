@@ -17,6 +17,7 @@ public class User {
 
     @Column(unique = true, length = 11)
     private String cpf;
+    @Column(nullable = false)
     private String password;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
