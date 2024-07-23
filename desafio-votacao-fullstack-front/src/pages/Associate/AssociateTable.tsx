@@ -1,8 +1,9 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { Button, Form, Table, Modal } from "react-bootstrap"
-const apiUrl = import.meta.env.VITE_APP_API_URL;
 
+import { useEffect, useState, ChangeEvent, MouseEvent } from "react";
+import { Button, Form, Table, Modal } from "react-bootstrap"
+import { findAllAssociates, createAssociate, updateAssociate } from "../../services/associateService";
+import DataTable from "../../Components/DateTable/DataTable";
+import { Column } from "../../Components/DateTable/DataTable";
 export interface Associate {
     id: number;
     name: string;
@@ -12,58 +13,66 @@ export interface Associate {
 const AssociateTable = () => {
 
     const [associates, setAssociates] = useState<Associate[]>([]);
-    const [name, setName] = useState<string>('');
-    const [cpf, setCpf] = useState<string>('');
+    const [associate, setAssociate] = useState<Associate>({id: 0, name: '', cpf: ''});
     const [editItem, setEditItem] = useState<Associate | null>(null);
     const [show, setShow] = useState<boolean>(false);
 
     useEffect(() => {
-        findAllAssociates();
-    }, []);
-
-    const createAssociate = async  (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        loadAssociates();
+      }, []);
+    
+      const loadAssociates = async () => {
+        try {
+          const data = await findAllAssociates();
+          setAssociates(data);
+        } catch (error) {
+          console.error("Erro ao buscar itens:", error);
+        }
+      };
+    
+      const handleCreateOrUpdate = async (event: MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         try {
-            if (editItem) {
-                await axios.put(`${apiUrl}/api/associate/${editItem.id}`, { name: name, cpf: cpf }); 
-                setEditItem(null);
-            } else {
-                await axios.post(`${apiUrl}/api/associate`, { name: name, cpf: cpf  }); 
-            }
-            findAllAssociates(); 
-            cleanState();
-            handleClose();
+          if (editItem) {
+            await updateAssociate(editItem.id, { name: associate.name, cpf: associate.cpf });
+            setEditItem(null);
+          } else {
+            await createAssociate({ name: associate.name, cpf: associate.cpf });
+          }
+          loadAssociates();
+          cleanState();
+          handleClose();
         } catch (error) {
-            console.error('Erro ao salvar item:', error);
+          console.error("Erro ao salvar item:", error);
         }
-    }
-
-    const findAllAssociates = async () => {
-        try {
-            const response = await axios.get<Associate[]>(`${apiUrl}/api/associate`); 
-            setAssociates(response.data);
-        } catch (error) {
-            console.error('Erro ao buscar itens:', error);
-        }
-    };
-
-    const cleanState = () => {
-        setName('');
-        setCpf('');
-    }
-
-    const handleEdit = (associate: Associate) => {
+      };
+    
+      const cleanState = () => {
+        setAssociate({ id: 0, name: "", cpf: "" });
+      };
+    
+      const handleEdit = (associate: Associate) => {
         setEditItem(associate);
-        setName(associate.name); 
-        setCpf(associate.cpf)
-    };
+        setAssociate({ ...associate, name: associate.name, cpf: associate.cpf });
+      };
+    
+      const handleOnChangeSetAssociate = (event: ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setAssociate((prevState) => ({ ...prevState, [name]: value }));
+      };
+    
+      const handleClose = () => setShow(false);
+      const handleShow = () => setShow(true);
 
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+      const columns: Column<Associate>[] = [
+        { header: "ID", accessor: "id" },
+        { header: "Nome", accessor: "name" },
+        { header: "CPF", accessor: "cpf" },
+      ];
     
     return (
         <>
-                 <Button variant="warning" onClick={() => handleShow()}>
+                <Button variant="warning" onClick={() => handleShow()}>
                     Novo
                 </Button>
                 <Modal show={show} onHide={handleClose}>
@@ -75,46 +84,25 @@ const AssociateTable = () => {
                         <Form>
                             <Form.Group className="mb-3" controlId="formBasicName">
                                 <Form.Label>Nome</Form.Label>
-                                <Form.Control type="text" placeholder="Informe o nome do associado." value={name} onChange={(e) => setName(e.target.value)}/>
+                                <Form.Control name="name" type="text" placeholder="Informe o nome do associado." value={associate.name} onChange={handleOnChangeSetAssociate}/>
                             </Form.Group>
 
                             <Form.Group className="mb-3" controlId="formBasicCpf">
                                 <Form.Label>CPF</Form.Label>
-                                <Form.Control type="text" placeholder="Informe o CPF do associado." value={cpf} onChange={(e) => setCpf(e.target.value)}/>
+                                <Form.Control name="cpf" type="text" placeholder="Informe o CPF do associado." value={associate.cpf} onChange={handleOnChangeSetAssociate}/>
                             </Form.Group>
 
-                            
                         </Form>
                     </Modal.Body>
 
                     <Modal.Footer>
-                        <Button variant="success" type="submit" onClick={createAssociate}>
+                        <Button variant="success" type="submit" onClick={handleCreateOrUpdate}>
                             Cadastrar Associado
                         </Button>
                     </Modal.Footer>
                 </Modal>
-            
 
-            <Table striped bordered hover>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>CPF</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {
-                        associates.map((associate) => (
-                            <tr key={associate.id}>
-                                <td>{associate.id}</td>
-                                <td>{associate.name}</td>
-                                <td>{associate.cpf}</td>
-                            </tr>
-                        ))
-                    }
-                </tbody>
-            </Table>
+                <DataTable data={associates} columns={columns} />
         </>
         
     )
