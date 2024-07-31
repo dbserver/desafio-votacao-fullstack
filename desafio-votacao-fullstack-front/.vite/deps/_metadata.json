@@ -1,0 +1,91 @@
+{
+  "hash": "7d735f08",
+  "configHash": "55eb0ed4",
+  "lockfileHash": "c90a8aff",
+  "browserHash": "ba173b74",
+  "optimized": {
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "4e0d6fa4",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "011247f3",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.js",
+      "file": "react-router-dom.js",
+      "fileHash": "da881e10",
+      "needsInterop": false
+    },
+    "react-bootstrap": {
+      "src": "../../node_modules/react-bootstrap/esm/index.js",
+      "file": "react-bootstrap.js",
+      "fileHash": "f7a0ea9f",
+      "needsInterop": false
+    },
+    "axios": {
+      "src": "../../node_modules/axios/index.js",
+      "file": "axios.js",
+      "fileHash": "8f70d5f4",
+      "needsInterop": false
+    },
+    "@mui/x-date-pickers/AdapterDayjs": {
+      "src": "../../node_modules/@mui/x-date-pickers/AdapterDayjs/index.js",
+      "file": "@mui_x-date-pickers_AdapterDayjs.js",
+      "fileHash": "e286201d",
+      "needsInterop": false
+    },
+    "@mui/x-date-pickers/LocalizationProvider": {
+      "src": "../../node_modules/@mui/x-date-pickers/LocalizationProvider/index.js",
+      "file": "@mui_x-date-pickers_LocalizationProvider.js",
+      "fileHash": "9bbb35ed",
+      "needsInterop": false
+    },
+    "@mui/x-date-pickers/DateTimePicker": {
+      "src": "../../node_modules/@mui/x-date-pickers/DateTimePicker/index.js",
+      "file": "@mui_x-date-pickers_DateTimePicker.js",
+      "fileHash": "2dfbf1de",
+      "needsInterop": false
+    },
+    "dayjs": {
+      "src": "../../node_modules/dayjs/dayjs.min.js",
+      "file": "dayjs.js",
+      "fileHash": "2efeedb8",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-F5FQQUW5": {
+      "file": "chunk-F5FQQUW5.js"
+    },
+    "chunk-ZCYJYLSR": {
+      "file": "chunk-ZCYJYLSR.js"
+    },
+    "chunk-ZIYUGMGG": {
+      "file": "chunk-ZIYUGMGG.js"
+    },
+    "chunk-BRAU7EQW": {
+      "file": "chunk-BRAU7EQW.js"
+    },
+    "chunk-MXXKYAAV": {
+      "file": "chunk-MXXKYAAV.js"
+    },
+    "chunk-YGDWFYBV": {
+      "file": "chunk-YGDWFYBV.js"
+    },
+    "chunk-65KY755N": {
+      "file": "chunk-65KY755N.js"
+    },
+    "chunk-5FH4KILI": {
+      "file": "chunk-5FH4KILI.js"
+    },
+    "chunk-V4OQ3NZ2": {
+      "file": "chunk-V4OQ3NZ2.js"
+    }
+  }
+}

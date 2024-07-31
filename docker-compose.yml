@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=votacao
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=123456
+
+  spring-app:
+    image: backend-api-votacao:latest
+    ports: 
+      - "8080:8080"
+    environment: 
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/votacao
+    depends_on:
+      - postgres-db
+
+  spa-app:
+    build:
+      context: ./desafio-votacao-fullstack-front
+      dockerfile: Dockerfile
+    ports:
+      - "9090:9090"
+    depends_on:
+      - spring-app
+
