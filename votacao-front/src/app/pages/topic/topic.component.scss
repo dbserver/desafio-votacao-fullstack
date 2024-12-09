@@ -1,0 +1,44 @@
+@import "../../../styles/variables.scss";
+
+header{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+img{
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  height: 105px;
+}
+
+.bt{
+  display: flex;
+  align-items: center;
+  padding-right: 25px;
+
+}
+
+.bt-topic {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: inherit;
+  padding: 10px 0;
+  text-decoration: none;
+  color: $bg-color;
+  background: $color;
+  border: 1px solid $color;
+  width: 150px;
+
+}
+
+.bt-topic:hover {
+  background-color: $color-s;
+}
+
+

@@ -1,0 +1,33 @@
+@import "../../../styles/variables.scss";
+
+.input-wrapper {
+  color: red;
+  font-size: 16px;
+  text-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 15px;
+
+  label {
+      margin-bottom: 10px;
+  }
+
+  .input-content {
+      width: 50%;
+      border-radius: 8px;
+      display: flex;
+
+      input {
+          border: none;
+          border-radius: 8px;
+          background-color: $input-color;
+          padding: 12px;
+          width: 100%;
+      }
+  }
+
+
+}
+
