@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS associado (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    cpf VARCHAR(11) NOT NULL UNIQUE
+);

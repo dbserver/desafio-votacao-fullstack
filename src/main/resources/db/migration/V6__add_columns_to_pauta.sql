@@ -1,0 +1,3 @@
+ALTER TABLE pauta
+    ADD COLUMN aberta BOOLEAN DEFAULT false,
+    ADD COLUMN tempo_votacao INTEGER DEFAULT 1;
