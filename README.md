@@ -1,5 +1,10 @@
 # Votação
 
+## Instruções de como rodar o projeto
+As instruções de como rodar o frontend do projeto estão no diretório /frontend, assim como as instruções de como rodar o backend do projeto estão no diretório /backend, cada em seus
+respectivos README's.
+
+
 ## Objetivo
 
 No cooperativismo, cada associado possui um voto e as decisões são tomadas em assembleias, por votação. Imagine que você deve criar uma solução we para gerenciar e participar dessas sessões de votação.
