@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: votacao_postgres
+    environment:
+      POSTGRES_DB: votacao_db
+      POSTGRES_USER: votacao_user
+      POSTGRES_PASSWORD: votacao_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - votacao_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U votacao_user -d votacao_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:latest
+    container_name: votacao_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - votacao_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  votacao_network:
+    driver: bridge

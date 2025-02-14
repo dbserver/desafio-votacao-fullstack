@@ -1,86 +1,170 @@
-# Votação
+# API de Votação
 
-## Objetivo
+API REST para gerenciamento de sessões de votação em assembleias.
 
-No cooperativismo, cada associado possui um voto e as decisões são tomadas em assembleias, por votação. Imagine que você deve criar uma solução we para gerenciar e participar dessas sessões de votação.
-Essa solução deve ser executada na nuvem e promover as seguintes funcionalidades através de uma API REST / Front:
+## 🚀 Tecnologias
 
-- Cadastrar uma nova pauta
-- Abrir uma sessão de votação em uma pauta (a sessão de votação deve ficar aberta por
-  um tempo determinado na chamada de abertura ou 1 minuto por default)
-- Receber votos dos associados em pautas (os votos são apenas 'Sim'/'Não'. Cada associado
-  é identificado por um id único e pode votar apenas uma vez por pauta)
-- Contabilizar os votos e dar o resultado da votação na pauta
+- Java 17
+- Spring Boot 3.4.2
+- PostgreSQL
+- Redis
+- Docker
+- Maven
 
-Para fins de exercício, a segurança das interfaces pode ser abstraída e qualquer chamada para as interfaces pode ser considerada como autorizada. A solução deve ser construída em java com Spring-boot e Angular/React conforme orientação, mas os frameworks e bibliotecas são de livre escolha (desde que não infrinja direitos de uso).
+## 📋 Pré-requisitos
 
-É importante que as pautas e os votos sejam persistidos e que não sejam perdidos com o restart da aplicação.
+- Java 17+
+- Docker e Docker Compose
+- Maven 3.6+
 
-## Como proceder
+## 🔧 Instalação
 
-Por favor, realize o FORK desse repositório e implemente sua solução no FORK em seu repositório GItHub, ao final, notifique da conclusão para que possamos analisar o código implementado.
+1. Clone o repositório:
 
-Lembre de deixar todas as orientações necessárias para executar o seu código.
-
-### Tarefas bônus
-
-- Tarefa Bônus 1 - Integração com sistemas externos
-  - Criar uma Facade/Client Fake que retorna aleátoriamente se um CPF recebido é válido ou não.
-  - Caso o CPF seja inválido, a API retornará o HTTP Status 404 (Not found). Você pode usar geradores de CPF para gerar CPFs válidos
-  - Caso o CPF seja válido, a API retornará se o usuário pode (ABLE_TO_VOTE) ou não pode (UNABLE_TO_VOTE) executar a operação. Essa operação retorna resultados aleatórios, portanto um mesmo CPF pode funcionar em um teste e não funcionar no outro.
-
+```bash
+git clone https://github.com/seu-usuario/votacao-api.git
+cd votacao-api
 ```
-// CPF Ok para votar
-{
-    "status": "ABLE_TO_VOTE
-}
-// CPF Nao Ok para votar - retornar 404 no client tb
-{
-    "status": "UNABLE_TO_VOTE
-}
+2. Execute o Docker Compose para iniciar os serviços necessários:
+
+```bash
+docker-compose up -d
 ```
 
-Exemplos de retorno do serviço
+3. Execute a aplicação:
 
-### Tarefa Bônus 2 - Performance
+```bash
+./mvnw spring-boot:run
+```
 
-- Imagine que sua aplicação possa ser usada em cenários que existam centenas de
-  milhares de votos. Ela deve se comportar de maneira performática nesses
-  cenários
-- Testes de performance são uma boa maneira de garantir e observar como sua
-  aplicação se comporta
+## 📚 Documentação da API
 
-### Tarefa Bônus 3 - Versionamento da API
+A documentação completa da API está disponível através do Swagger UI:
 
-○ Como você versionaria a API da sua aplicação? Que estratégia usar?
+```bash
+http://localhost:8080/swagger-ui.html
+```
+### Endpoints
 
-## O que será analisado
+#### Pautas
 
-- Simplicidade no design da solução (evitar over engineering)
-- Organização do código
-- Arquitetura do projeto
-- Boas práticas de programação (manutenibilidade, legibilidade etc)
-- Possíveis bugs
-- Tratamento de erros e exceções
-- Explicação breve do porquê das escolhas tomadas durante o desenvolvimento da solução
-- Uso de testes automatizados e ferramentas de qualidade
-- Limpeza do código
-- Documentação do código e da API
-- Logs da aplicação
-- Mensagens e organização dos commits
-- Testes
-- Layout responsivo
+##### Criar nova pauta
 
-## Dicas
+```http
+POST /api/v1/agendas
+```
 
-- Teste bem sua solução, evite bugs
+Request body:
 
-  Observações importantes
-- Não inicie o teste sem sanar todas as dúvidas
-- Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
-  deixe claro caso haja instruções especiais para execução do mesmo
-  Classificação da informação: Uso Interno
+```json
+{
+"title": "string",
+"description": "string"
+}
+```
+
+#### Sessões de Votação
+
+##### Abrir sessão de votação
+
+```http
+POST /api/v1/agendas/{agendaId}/sessions
+```
+
+Query parameters:
+- `durationMinutes` (opcional): Duração da sessão em minutos (default: 1)
+
+#### Votos
+
+##### Registrar voto
+
+```http
+POST /api/v1/sessions/{sessionId}/votes
+```
+
+```json
+{
+"associateId": "12345678900",
+"vote": true
+}
+```
+
+##### Obter resultado da votação
+
+```http
+GET /api/v1/sessions/{sessionId}/result
+```
+
+## 🏗️ Arquitetura
+
+A aplicação segue uma arquitetura em camadas:
+
+- **Controllers**: Responsáveis pelo recebimento das requisições HTTP
+- **Services**: Implementação das regras de negócio
+- **Repositories**: Camada de acesso aos dados
+- **Models**: Entidades do domínio
+- **DTOs**: Objetos de transferência de dados
+
+### Cache
+
+- Utiliza Redis para cache de resultados e controle de concorrência
+- Implementação de batch processing para votos
+- Cache distribuído para alta disponibilidade
+
+### Banco de Dados
+
+- PostgreSQL para persistência dos dados
+- Índices otimizados para consultas de votação
+- Connection pool com Hikari
+
+## 🧪 Testes
+
+Para executar os testes:
+
+```http
+./mvnw test
+```
+## 📄 Licença
+
+Este projeto está sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 🤝 Contribuindo
+
+1. Faça o fork do projeto
+2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## ⚙️ Configuração
+
+As principais configurações estão no arquivo `application.properties`:
+
+- Banco de dados
+- Redis
+- Server
+- Swagger/OpenAPI
+- Connection Pool
+- JPA/Hibernate
+
+## 📦 Deploy
+
+A aplicação pode ser containerizada usando o Dockerfile fornecido. Para construir e executar:
 
 
+```bash
+docker build -t votacao-api .
+docker run -p 8080:8080 votacao-api
+```
 
-# desafio-votacao
+## 🔍 Monitoramento
+
+A aplicação expõe endpoints do Spring Actuator para monitoramento:
+
+```http
+http://localhost:8080/actuator
+```
+
+## 📞 Suporte
+
+Em caso de dúvidas ou problemas, abra uma issue no repositório ou contate o time de desenvolvimento em dev@empresa.com.
