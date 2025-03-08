@@ -76,11 +76,95 @@ Exemplos de retorno do serviço
 - Teste bem sua solução, evite bugs
 
   Observações importantes
+
 - Não inicie o teste sem sanar todas as dúvidas
 - Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
   deixe claro caso haja instruções especiais para execução do mesmo
   Classificação da informação: Uso Interno
 
+# Desafio-votacao
 
+## Como rodar o projeto
 
-# desafio-votacao
+git clone https://github.com/seu-usuario/seu-repositorio.git
+
+### Pré-requisitos
+
+- [Node.js](https://nodejs.org/) (versão 14 ou superior)
+- [npm](https://www.npmjs.com/) ou [yarn](https://yarnpkg.com/)
+- [PHP](https://www.php.net/) (versão 7.4 ou superior)
+- [Composer](https://getcomposer.org/)
+- [MySQL](https://www.mysql.com/) ou outro banco de dados compatível
+
+### Rodando o Backend
+
+Navegue até o diretório do Backend:
+
+```sh
+cd server-api
+```
+
+Instale as dependências do PHP usando o Composer:
+
+```sh
+composer install
+```
+
+Copie o arquivo .env.example para .env e configure as variáveis de ambiente, especialmente as configurações do banco de dados:
+
+```sh
+cp .env.example .env
+```
+
+Gere a chave da aplicação:
+
+```sh
+php artisan key:generate
+```
+
+Execute as migrações para criar as tabelas no banco de dados:
+
+```sh
+php artisan migrate
+```
+
+Inicie o servidor de desenvolvimento:
+
+```sh
+php artisan serve
+```
+
+O backend estará disponível em http://localhost:8000/
+
+### Rodando o Frontend
+
+Navegue até o diretório do front:
+
+```sh
+cd votacao-frontend
+```
+
+Instale as dependências do Node.js usando npm:
+
+```sh
+npm install
+```
+
+O frontend estará disponível em http://localhost:5173/
+
+### Rodando Tests
+
+Navegue até o diretório do Backend:
+
+```sh
+cd server-api
+```
+Execute o comando:
+
+```sh
+composer test
+```
+
+## Considerações finais
+
+No backend dentro da pasta database/seeders eu deixei um arquivo de sql com usuários para poder testar a aplicação sem precisar cadastrar novos usuários.
