@@ -1,0 +1,40 @@
+@import 'tailwindcss';
+
+:root {
+  --color-text: #323c32;
+  --color-principal: #33820d;
+  --color-secondary: ##64c832;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body,
+html {
+  background-color: var(--background);
+  color: var(--color-text);
+  width: 100vw;
+  height: 100vh;
+}
+
+h1 {
+  color: var(--color-principal);
+}
+
+p {
+  text-align: justify;
+  line-height: 1.6;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
