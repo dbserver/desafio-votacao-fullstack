@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  desafio-votacao:
+    container_name: votacao
+    image: wesleydocker2/desafio-votacao:latest
+    restart: unless-stopped
+    ports:
+       - "5495:5432" 
+    environment:
+      POSTGRES_USER: votacao
+      POSTGRES_PASSWORD: z896ipGG012567
+      POSTGRES_DB: desafio_votacao
+
+volumes:
+  postgres_data:
+

@@ -1,0 +1,21 @@
+Para facilitar a criação do banco de dados eu criei uma imagem do PostgreSQL personalizada com toda a estrutura já pronta e deixei disponivel no Docker Hub para poder baixar. Tambeḿ crei o arquivo docker-compose.yml que cria o container e deixa ele pronto para o uso.
+
+Para criar o banco de dados será necessário executar o docker-compose dentro da pasta "postegreSQL14" com o comando: "sudo docker-compose up -d".
+
+Para isso o recomendado é estar em um computador com sistema operacional Linux.
+
+Também será necessário ter instalado o docker na versão 27.0 e o docker-compose na versão 1.25.4.
+
+Se a versão do docker compose foi mais atualizada pode ser necessário executar o comando: "sudo docker-compose up -d" sem o "-" entre as palavras docker e compose 
+
+Teste de carga
+    - Se quiser fazer um teste de carga para ver o comportamento da sistema com 400 requisições, poderá executar o arquivo vote.sh
+    - Para isso, edite o arquivo e modifique a linha 17: "  DISCUSS_ID=23" e altere o valor para o id da pauta que você criou, depois
+      dentro do projeto tem o arquivo insert associates, ele contem os inserts para criar todos os associados fake
+      então, basta executar no terminal bash vote.sh
+    - O arquivo cpfs.txt são todos cpfs fakes.
+
+
+Tarefa Bônus 3 - Versionamento da API
+    Como você versionaria a API da sua aplicação? Que estratégia usar?
+    Eu prefiro usar versionamento via URL (/v1/...), pois é a abordagem mais clara para consumidores, facilita backward compatibility e facilita o controle de rotas na aplicação
