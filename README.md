@@ -76,11 +76,57 @@ Exemplos de retorno do serviço
 - Teste bem sua solução, evite bugs
 
   Observações importantes
+
 - Não inicie o teste sem sanar todas as dúvidas
 - Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
   deixe claro caso haja instruções especiais para execução do mesmo
   Classificação da informação: Uso Interno
 
-
-
 # desafio-votacao
+
+# Desafio Votação - Backend
+
+## 🚀 Como rodar o projeto back end localmente
+
+Sistema de votação para assembleias com back-end em Spring Boot e banco de dados PostgreSQL.
+
+### 📦 1. Subir o container mais banco de dados PostgreSQL:13 com Docker
+
+Certifique-se de ter o [Docker](https://www.docker.com/products/docker-desktop/) instalado.
+
+1. No terminal, na raiz do projeto backend digite no terminal o comando para criar a imagem docker.
+
+```bash
+docker-compose build
+```
+
+2. Rode o comando para criar container em sim:
+
+```bash
+docker-compose up -d
+```
+
+# Credenciais para acessar o banco de dados com gerenciador de bancos de dados.
+
+base: voting_db
+usuario: postgres
+senha: manager
+
+## 🚀 Como rodar o projeto front end localmente
+
+### 📦 1. baixa todas a bibliotecas necessarias
+
+1. No terminal, navegue até o diretório onde está o projeto.
+2. Rode o comando para instalar as bibliotecas:
+
+```bash
+npm i ou npm install
+
+```
+
+3. Rode o comando para iniciar o projeto:
+
+```bash
+npm run dev
+
+```

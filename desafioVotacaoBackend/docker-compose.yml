@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:13
+    container_name: votacao_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: voting_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: manager
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  springboot-app:
+    build: .
+    container_name: votacao_api
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/voting_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: manager
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
