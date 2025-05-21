@@ -1,86 +1,152 @@
-# Votação
+# 🗳️ Sistema de Votação para Cooperativas
 
-## Objetivo
+Este projeto é uma aplicação completa de votação digital para cooperativas, com funcionalidades para criação de pautas, abertura de sessões de votação com tempo definido ou padrão, registro de votos únicos por associado e exibição do resultado da votação.
 
-No cooperativismo, cada associado possui um voto e as decisões são tomadas em assembleias, por votação. Imagine que você deve criar uma solução we para gerenciar e participar dessas sessões de votação.
-Essa solução deve ser executada na nuvem e promover as seguintes funcionalidades através de uma API REST / Front:
+### Link para acessar o projeto: https://votacao-tau.vercel.app/
 
-- Cadastrar uma nova pauta
-- Abrir uma sessão de votação em uma pauta (a sessão de votação deve ficar aberta por
-  um tempo determinado na chamada de abertura ou 1 minuto por default)
-- Receber votos dos associados em pautas (os votos são apenas 'Sim'/'Não'. Cada associado
-  é identificado por um id único e pode votar apenas uma vez por pauta)
-- Contabilizar os votos e dar o resultado da votação na pauta
+---
 
-Para fins de exercício, a segurança das interfaces pode ser abstraída e qualquer chamada para as interfaces pode ser considerada como autorizada. A solução deve ser construída em java com Spring-boot e Angular/React conforme orientação, mas os frameworks e bibliotecas são de livre escolha (desde que não infrinja direitos de uso).
+## ⚙️ Tecnologias Utilizadas
 
-É importante que as pautas e os votos sejam persistidos e que não sejam perdidos com o restart da aplicação.
+### 🔙 Backend
 
-## Como proceder
+- **Java 17**
+- **Spring Boot**
+- **Arquitetura Hexagonal (Ports and Adapters)**
+- **Banco de Dados PostgreSQL** (hospedado no [Railway](https://railway.app))
+- **Hospedado no [Render](https://render.com)** com suporte a Docker (imagem criada via `Dockerfile`)
+- **Swagger/OpenAPI** para documentação da API: [Swagger da api](https://spring-boot-backend-bzbf.onrender.com/swagger-ui/index.html)
+- **JPA/Hibernate** para persistência
 
-Por favor, realize o FORK desse repositório e implemente sua solução no FORK em seu repositório GItHub, ao final, notifique da conclusão para que possamos analisar o código implementado.
+### 🌐 Frontend
 
-Lembre de deixar todas as orientações necessárias para executar o seu código.
+- **React + Vite**
+- **TypeScript**
+- **Material UI (MUI)** para UI responsiva e moderna
+- **Axios** para consumo de API
 
-### Tarefas bônus
+---
 
-- Tarefa Bônus 1 - Integração com sistemas externos
-  - Criar uma Facade/Client Fake que retorna aleátoriamente se um CPF recebido é válido ou não.
-  - Caso o CPF seja inválido, a API retornará o HTTP Status 404 (Not found). Você pode usar geradores de CPF para gerar CPFs válidos
-  - Caso o CPF seja válido, a API retornará se o usuário pode (ABLE_TO_VOTE) ou não pode (UNABLE_TO_VOTE) executar a operação. Essa operação retorna resultados aleatórios, portanto um mesmo CPF pode funcionar em um teste e não funcionar no outro.
+## 📐 Arquitetura Hexagonal
+
+Este projeto segue os princípios da **Arquitetura Hexagonal** (também conhecida como **Ports and Adapters**) combinada com práticas do **DDD** e da **Clean Architecture**, garantindo:
+
+- 🧠 **Clareza semântica**: fica evidente o que é **entrada**, **saída**, **domínio** e **aplicação**.
+- 🧱 **Separação de responsabilidades** bem delimitada.
+- 🧪 **Facilidade de testes, manutenção e evolução** do sistema.
+
+### 📂 Organização do Código
+
+```plaintext
+src/
+├── application/          # Casos de uso da aplicação
+├── domain/                # Entidades, enums, regras de negócio
+├── infrastructure/      # Repositórios, integrações, controllers
+└── config/                 # Configurações gerais (CORS, Swagger, Beans)
+```
+
+---
+
+## 🔍 Escolhas Técnicas
+
+- **Spring Boot** pela robustez, produtividade e comunidade
+- **Arquitetura Hexagonal** para facilitar testes e trocas tecnológicas futuras
+- **Vite** no frontend por ser mais rápido e leve que alternativas como CRA
+- **Material UI** pela consistência visual e integração com React
+- **Railway** para banco de dados PostgreSQL por simplicidade e deploy rápido
+- **Render** para hospedar o backend via Docker, com bom suporte a autoscaling
+
+---
+
+## ✅ Funcionalidades
+
+- 📄 **Cadastrar uma nova pauta**
+- 🕒 **Abrir uma sessão de votação**
+- 🗳️ **Receber votos** dos associados (Sim/Não)
+  - Cada associado é identificado por um ID único
+  - Cada associado pode votar **apenas uma vez por pauta**
+- 📊 **Contabilizar os votos e retornar o resultado** de cada pauta
+
+---
+
+## 📦 Como Rodar o Projeto Localmente
+
+### 🧱 Backend
+
+### 📌 Requisitos para rodar:
+
+- Java 17
+- Maven 3.8+
+- PostgreSQL 12+
+
+### 1) Clonar o projeto
+
+```bash
+git clone https://github.com/aureasiqueira1/votacao.git
+```
+
+### 2) Entrar na pasta:
+
+```bash
+cd votacao/back
+```
+
+### 3) Rodar com Maven localmente:
+
+```bash
+./mvnw spring-boot:run
+```
+
+---
+
+### 🌐 Frontend
+
+- Requisitos: Node.js (18+)
+
+### 1) Depois de clonar o projeto, entrar na pasta:
+
+```bash
+cd votacao/front
+```
+
+### 2) Instalar dependências:
+
+```bash
+npm install
+```
+
+### 3) Adicionar arquivo .env:
+
+- Para usar api local:
 
 ```
-// CPF Ok para votar
-{
-    "status": "ABLE_TO_VOTE
-}
-// CPF Nao Ok para votar - retornar 404 no client tb
-{
-    "status": "UNABLE_TO_VOTE
-}
+VITE_API_BASE_URL="http://localhost:8080/api"
 ```
 
-Exemplos de retorno do serviço
+- Para usar api na nuvem:
 
-### Tarefa Bônus 2 - Performance
+```
+VITE_API_BASE_URL="https://spring-boot-backend-bzbf.onrender.com/api"
+```
 
-- Imagine que sua aplicação possa ser usada em cenários que existam centenas de
-  milhares de votos. Ela deve se comportar de maneira performática nesses
-  cenários
-- Testes de performance são uma boa maneira de garantir e observar como sua
-  aplicação se comporta
+### 4) Rodar aplicação:
 
-### Tarefa Bônus 3 - Versionamento da API
+```bash
+npm run dev
+```
 
-○ Como você versionaria a API da sua aplicação? Que estratégia usar?
+---
 
-## O que será analisado
+### Demonstração:
 
-- Simplicidade no design da solução (evitar over engineering)
-- Organização do código
-- Arquitetura do projeto
-- Boas práticas de programação (manutenibilidade, legibilidade etc)
-- Possíveis bugs
-- Tratamento de erros e exceções
-- Explicação breve do porquê das escolhas tomadas durante o desenvolvimento da solução
-- Uso de testes automatizados e ferramentas de qualidade
-- Limpeza do código
-- Documentação do código e da API
-- Logs da aplicação
-- Mensagens e organização dos commits
-- Testes
-- Layout responsivo
-
-## Dicas
-
-- Teste bem sua solução, evite bugs
-
-  Observações importantes
-- Não inicie o teste sem sanar todas as dúvidas
-- Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
-  deixe claro caso haja instruções especiais para execução do mesmo
-  Classificação da informação: Uso Interno
-
-
-
-# desafio-votacao
+<p align="center">
+  <img src="image-2.png" alt="alt text" width="600"/>
+  <br />
+  <img src="image.png" alt="alt text" width="600"/>
+  <br />
+  <img src="image-3.png" alt="alt text" width="600"/>
+  <br />
+  <img src="image-4.png" alt="alt text" width="600"/>
+  <br />
+  <img src="image-6.png" alt="alt text" width="600"/>
+</p>
