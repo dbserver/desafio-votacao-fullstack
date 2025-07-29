@@ -1,0 +1,14 @@
+<button
+    *ngIf="!!icon && !label"
+    mat-fab
+    (click)="click()"
+    [ngStyle]="{'background-color': color, 'color': textColor}"
+    ><mat-icon>{{icon}}</mat-icon>
+</button>
+<button
+    *ngIf="!!label && !icon"
+    mat-raised-button
+    (click)="click()"
+    [ngStyle]="{'background-color': color, 'color': textColor }"
+    ><span>{{label}}</span>
+</button>

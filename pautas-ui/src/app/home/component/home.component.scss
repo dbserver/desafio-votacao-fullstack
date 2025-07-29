@@ -1,0 +1,28 @@
+:host {
+    display: flex;
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center;
+
+    .sidenav-actions {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .votacao-container {
+        margin-top: 16px;
+        background-color: #f7faf9;
+    }
+
+    .pauta-list {
+        margin-top: 16px;
+    }
+
+    .votacao-container,
+    .pauta-list {
+        width: 100%;
+    }
+
+}

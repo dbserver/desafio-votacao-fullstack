@@ -1,0 +1,29 @@
+<div class="sidenav-actions">
+    <app-button (onClick)="voltar()" icon="arrow_back"></app-button>
+    <h1>Nova Pauta</h1>
+    <app-button class="btn-start" (onClick)="save()" icon="save"></app-button>
+</div>
+<div class="form-container">
+    <form [formGroup]="form">
+        <div class="input-group-line">
+            <div>
+                <mat-form-field>
+                    <mat-label>Título</mat-label>
+                    <input matInput formControlName="titulo">
+                </mat-form-field>
+            </div>
+            <div formGroupName="sessaoVotacao" class="sessao-group">
+                <mat-form-field>
+                    <mat-label>Duração (minutos)</mat-label>
+                    <input matInput formControlName="duracao">
+                </mat-form-field>
+            </div>
+        </div>
+        <div class="textarea">
+            <mat-form-field>
+                <mat-label>Descrição</mat-label>
+                <textarea matInput formControlName="descricao"></textarea>
+            </mat-form-field>
+        </div>
+    </form>
+</div>

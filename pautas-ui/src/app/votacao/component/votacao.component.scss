@@ -1,0 +1,21 @@
+:host {
+  div {
+    display: flex;
+  }
+
+  .empty-pauta-container {
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pauta-infos-container,
+  .votacao-form-container {
+    flex: 0 0 50%;
+    box-sizing: border-box;
+    padding: 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+  }
+}

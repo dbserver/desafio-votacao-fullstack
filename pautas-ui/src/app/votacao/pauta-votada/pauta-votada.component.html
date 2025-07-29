@@ -1,0 +1,17 @@
+<div class="pauta-votada-container" *ngIf="!!pauta?.id">
+    <h2>Pauta Votada</h2>
+    <div>
+        <div class="pauta-details">
+            <span>Título:</span>
+            <p>{{ pauta.titulo }}</p>
+        </div>
+        <div class="pauta-details">
+            <span>Abertura: </span>
+            <p>{{ pauta.sessaoVotacao.dataAbertura | date:'dd/MM/yyyy - HH:mm' }}</p>    
+        </div>
+        <div class="pauta-details">
+            <span>Fechamento: </span>
+            <p>{{ pauta.sessaoVotacao.dataFechamento | date:'dd/MM/yyyy - HH:mm' }}</p>    
+        </div>
+    </div>
+</div>

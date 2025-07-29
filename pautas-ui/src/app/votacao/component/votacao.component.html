@@ -1,0 +1,13 @@
+<div>
+    <div *ngIf="!pauta; else pautaAberta" class="empty-pauta-container">
+        <h2>Nenhuma pauta em votação</h2>
+    </div>
+    <ng-template #pautaAberta>
+        <div class="pauta-infos-container">
+            <app-pauta-votada [pauta]="pauta"></app-pauta-votada>
+        </div>
+        <div class="votacao-form-container">
+            <app-painel-votacao [pauta]="pauta"></app-painel-votacao>
+        </div>
+    </ng-template>
+</div>

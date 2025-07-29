@@ -1,0 +1,39 @@
+:host {
+    .sidenav-actions {
+        display: flex;
+        align-items: center;
+
+    .btn-start {
+        margin-left: auto;
+    }
+    }
+
+    h1 {
+        margin-left: 10px;
+    }
+
+    .form-container {
+        width: 100%;
+        margin-top: 16px;
+
+        .textarea {
+            mat-form-field {
+                width: 100%;
+            }
+        }
+
+        .input-group-line {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            margin-bottom: 16px;
+
+            div {
+                width: 49%;
+                mat-form-field {
+                    width: 100%;
+                }
+            }
+        }
+    }
+}

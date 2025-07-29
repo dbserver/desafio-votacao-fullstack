@@ -1,0 +1,25 @@
+<app-cronometro
+  [dataFechamento]="pauta.sessaoVotacao.dataFechamento"
+  (tempoFinalizado)="quandoTempoAcabar()"
+></app-cronometro>
+
+<div class="painel-votacao-container">
+  <div>
+    <form [formGroup]="form">
+      <mat-form-field>
+        <mat-label>CPF</mat-label>
+        <input
+          matInput
+          formControlName="cpf"
+          mask="000.000.000-00"
+          placeholder="000.000.000-00"
+        >
+      </mat-form-field>
+    </form>
+  </div>
+  <div class="buttons-container">
+    <h3>Voto</h3>
+    <app-button (onClick)="votarSim()" color="lightgreen" label="Sim"></app-button>
+    <app-button (onClick)="votarNao()" color="tomato" label="Não"></app-button>
+  </div>
+</div>

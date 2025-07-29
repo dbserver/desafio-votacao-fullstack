@@ -1,0 +1,19 @@
+:host {
+  .pauta-details {
+    display: flex !important;
+    flex-direction: row;
+    align-items: start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;  }
+
+  .pauta-details > span {
+    display: inline-block;
+    font-weight: 600;
+  }
+
+  .pauta-details > p {
+    display: inline-block;
+    margin: 0;
+    flex: 1;
+  }
+}

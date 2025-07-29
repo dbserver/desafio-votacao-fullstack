@@ -1,0 +1,7 @@
+<div class="contador-container">
+  <span>Tempo restante: </span>
+  <span *ngIf="tempoRestante.days">{{ tempoRestante.days }}d</span>
+  <span>{{ tempoRestante.hours | number: '2.0' }}h</span>
+  <span>{{ tempoRestante.minutes | number: '2.0' }}m</span>
+  <span>{{ tempoRestante.seconds | number: '2.0' }}s</span>
+</div>
