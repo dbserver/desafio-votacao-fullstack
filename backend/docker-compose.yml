@@ -1,0 +1,23 @@
+version: '1.0'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: votacao-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: votacao
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - votacao-network
+
+volumes:
+  postgres_data:
+
+networks:
+  votacao-network:
+    driver: bridge
