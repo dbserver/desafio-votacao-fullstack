@@ -67,40 +67,41 @@ votacao-frontend/
 
 
 ## Instalação e Execução
-1. Clone o repositório:
 
-  git clone https://github.com/seu-usuario/votacao-frontend.git
+Clone o repositório:
+
+    git clone https://github.com/seu-usuario/votacao-frontend.git
 
 Entre na pasta do projeto:
 
-  cd votacao-frontend
+    cd votacao-frontend
 
 Instale as dependências:
 
-  npm install
+    npm install
 
 Inicie o servidor de desenvolvimento:
 
-  npm run dev
+    npm run dev
 
 Abra a aplicação no navegador:
 
-  http://localhost:5173
+    http://localhost:5173
 
 Acesse a página principal e utilize os formulários para criar pautas, abrir sessões e registrar votos.
 
-  Consulte os resultados em tempo real usando a página de resultados.
-
-  Boas Práticas
+    Consulte os resultados em tempo real usando a página de resultados.
   
-  Componentes reutilizáveis para maior manutenção.
-
-  Notificações de sucesso e erro usando React Toastify.
-
-  Proxy configurado para facilitar integração com o back-end.
+    Boas Práticas
+    
+    Componentes reutilizáveis para maior manutenção.
+  
+    Notificações de sucesso e erro usando React Toastify.
+  
+    Proxy configurado para facilitar integração com o back-end.
 
 Suporte a responsividade e layout limpo.
 
-  Testes podem ser executados com:
+    Testes podem ser executados com:
 
     npm run test
