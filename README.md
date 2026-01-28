@@ -1,4 +1,4 @@
-# Votação
+﻿# Votação
 
 ## Objetivo
 
@@ -84,3 +84,125 @@ Exemplos de retorno do serviço
 
 
 # desafio-votacao
+
+## Implementação
+
+Este repositório contém uma solução fullstack:
+- backend: Spring Boot 3 (Java 17), banco H2 em arquivo, API REST versionada em /api/v1
+- frontend: React + Vite
+
+### Backend
+
+Execução:
+```
+cd backend
+mvn spring-boot:run
+```
+
+Documentação da API:
+- Swagger UI: http://localhost:8080/swagger-ui
+- OpenAPI JSON: http://localhost:8080/api-docs
+
+Persistência:
+- Banco H2 em arquivo salvo em `./backend/data/votacao`
+- Dados persistem entre reinícios
+
+Principais endpoints:
+- POST /api/v1/pautas
+- GET /api/v1/pautas
+- GET /api/v1/pautas/{id}
+- POST /api/v1/pautas/{id}/sessoes
+- POST /api/v1/pautas/{id}/votos
+- GET /api/v1/pautas/{id}/resultado
+
+Cliente CPF (bônus):
+- Cliente fake retorna validade e capacidade de voto de forma aleatória
+- Se o CPF for inválido ou UNABLE_TO_VOTE, a API retorna 404
+- Ainda não contém validação de dígitos de CPF
+
+### Frontend
+
+Execução:
+```
+cd frontend
+npm install
+npm run dev
+```
+
+Env opcional:
+- VITE_API_URL=http://localhost:8080/api/v1
+
+### Docker
+
+Build e execução com Docker Compose:
+```
+docker compose up -d --build
+```
+
+Aplicações:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8080
+- Swagger: http://localhost:8080/swagger-ui
+
+Para desligar:
+```
+docker compose down
+```
+
+### Testes
+
+```
+cd backend
+mvn test
+```
+
+### Teste de performance (bônus 2)
+
+Executa um grande volume de inserções de votos para observar o comportamento com muitos votos.
+
+```
+cd backend
+mvn -Dperf=true -Dperf.votes=20000 test -Dtest=VotoPerformanceTest
+```
+
+### Observações
+
+- A duração da sessão é 1 minuto por padrão
+- Um associado pode votar apenas uma vez por pauta
+
+### Observabilidade
+
+- Actuator e métricas: `GET /actuator/metrics` e `GET /actuator/prometheus`
+- Traces e logs: os logs incluem `traceId` e `spanId` quando disponíveis
+
+## Detalhes de arquitetura
+
+### Camadas do backend
+
+- Controllers chamam apenas services. Consultas e mapeamento de resposta ficam em `PautaQueryService`.
+- Services de comando lidam com escrita; repositórios ficam atrás dos limites de service.
+- Testes unitários cobrem `PautaService`, `SessaoService` e `PautaQueryService`.
+
+### Estrutura do frontend (TypeScript)
+
+```
+frontend/src
+  api/          # Cliente HTTP + endpoints de pautas
+  components/   # Componentes de UI (forms, cards, toasts)
+  pages/        # Telas por rota
+  routes/       # Configuração do roteamento
+  types/        # Tipos TypeScript compartilhados
+  test/         # Vitest + Testing Library
+```
+
+Rotas:
+- `/` listagem de pautas
+- `/pautas/nova` criação de pauta
+- `/pautas/:id` detalhe de pauta
+
+### Testes do frontend
+
+```
+cd frontend
+npm run test
+```
