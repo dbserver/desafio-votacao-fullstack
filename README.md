@@ -84,3 +84,59 @@ Exemplos de retorno do serviço
 
 
 # desafio-votacao
+
+## Como Inicializar a Aplicação
+
+### Pré-requisitos
+- Docker e Docker Compose instalados
+- Java 17+ (opcional, apenas se executar sem Docker)
+- Git
+
+### Opção 1: Executar com Docker (Recomendado)
+
+1. **Clone o repositório:**
+   ```bash
+   git clone https://github.com/J-Player/desafio-votacao-fullstack
+   cd desafio-votacao-fullstack
+   ```
+
+2. **Inicie a aplicação:**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Acesse a aplicação:**
+   - API: http://localhost:8080
+   - Documentação da API (Swagger): http://localhost:8080/swagger-ui.html
+   - Banco de dados PostgreSQL: localhost:5432
+
+4. **Para parar a aplicação:**
+   ```bash
+   docker-compose down
+   ```
+
+### Opção 2: Executar Localmente
+
+1. **Inicie apenas o banco de dados:**
+   ```bash
+   docker-compose up -d db
+   ```
+
+2. **Execute o backend:**
+   ```bash
+   cd backend
+   ./gradlew bootRun
+   ```
+
+### Testando a API
+
+Após inicializar, você pode testar os endpoints principais:
+
+- **Criar pauta:** `POST /pauta`
+  - Nota: A duração de uma pauta é definida seguindo o seguinte formato de string passada no objeto do corpo da requisição:
+    - Sintaxe: `"PT<quantidade><H|M|S>"`
+    - Exemplos: 30 segundos = "PT30S", 1 minuto = "PT1M", 1 hora = "PT1H".
+- **Votar:** `POST /sessao`
+- **Ver resultado:** `GET /sessao/pauta/{id}`
+
+Consulte a documentação completa em: http://localhost:8080/swagger-ui.html
