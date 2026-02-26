@@ -1,0 +1,44 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: app-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - dbserver_mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: dbserver
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: app-api
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_MONGODB_URI: mongodb://admin:admin123@mongodb:27017/dbserver?authSource=admin
+      SPRING_PROFILES_ACTIVE: docker
+
+  front:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: app-front
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_HOST: localhost
+      NEXT_PUBLIC_API_HOST_PORT: 8080
+
+volumes:
+  dbserver_mongo_data:
