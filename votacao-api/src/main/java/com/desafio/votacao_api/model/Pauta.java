@@ -3,6 +3,7 @@ package com.desafio.votacao_api.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -13,7 +14,8 @@ import java.util.UUID;
  *
  * An agenda is a topic for which votes from members are intended to be collected.
  */
-@Entity(name = "pauta")
+@Entity
+@Table(name = "pauta")
 public class Pauta {
 
     /** Unique identifier of the agenda. */
