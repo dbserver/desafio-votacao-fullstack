@@ -146,6 +146,18 @@ public class Pauta {
     }
 
     /**
+     * Initializes timestamps before the first persistence.
+     */
+    @PrePersist
+    void onCreate() {
+        Instant now = Instant.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.updatedAt = now;
+    }
+
+    /**
      * Updates the last modification timestamp before persisting updates.
      */
     @PreUpdate

@@ -61,6 +61,7 @@ public class SessaoVotacao {
         sessao.createdAt = now;
         sessao.updatedAt = now;
         sessao.finalSessionDateTime = now.plusSeconds(effectiveDuration);
+        sessao.isActive = true;
         return sessao;
     }
 
@@ -158,6 +159,19 @@ public class SessaoVotacao {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+
+    /**
+     * Initializes timestamps before the first persistence.
+     */
+    @PrePersist
+    void onCreate() {
+        Instant now = Instant.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.updatedAt = now;
     }
 
 
