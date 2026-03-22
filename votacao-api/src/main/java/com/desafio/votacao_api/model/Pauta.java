@@ -1,12 +1,8 @@
 package com.desafio.votacao_api.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -21,6 +17,7 @@ public class Pauta {
 
     /** Unique identifier of the agenda. */
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     /** Name of the agenda. */
@@ -54,9 +51,8 @@ public class Pauta {
      */
     public Pauta(String name, String description) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Nome da pauta não pode ser nulo ou vazio");
+            throw new IllegalArgumentException("Nome da pauta nao pode ser nulo ou vazio");
         }
-        this.id = UUID.randomUUID();
         this.name = name;
         this.description = description;
         this.isActive = true;
@@ -150,12 +146,11 @@ public class Pauta {
     }
 
     /**
-     * Sets the date and time of the last update of the agenda.
-     *
-     * @param updatedAt the new update date and time
+     * Updates the last modification timestamp before persisting updates.
      */
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
+    @PreUpdate
+    void onUpdate() {
+        this.updatedAt = Instant.now();
     }
 
     @Override
@@ -163,12 +158,12 @@ public class Pauta {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Pauta pauta = (Pauta) o;
-        return Objects.equals(id, pauta.id);
+        return id != null && id.equals(pauta.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getClass().hashCode();
     }
 
     @Override
