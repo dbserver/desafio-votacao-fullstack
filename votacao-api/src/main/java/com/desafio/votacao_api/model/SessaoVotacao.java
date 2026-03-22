@@ -35,6 +35,9 @@ public class SessaoVotacao {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive;
+
     /**
      * JPA constructor.
      */
@@ -124,6 +127,24 @@ public class SessaoVotacao {
      */
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    /**
+     * Checks whether the session is active for voting.
+     *
+     * @return true if active, false otherwise
+     */
+    public boolean isActive() {
+        return this.isActive;
+    }
+
+    /**
+     * Sets whether the session is active for voting.
+     *
+     * @param active true to activate, false to deactivate
+    */
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     @Override
