@@ -1,24 +1,34 @@
 package com.desafio.votacao_api.model;
 
 import com.desafio.votacao_api.exception.InvalidCpfException;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 
 import java.util.Objects;
 
 /**
  * Value object that represents a Brazilian CPF number.
  */
+@Embeddable
 public class Cpf {
 
     /**
      * CPF number in a numeric 11-digit format.
      */
+    @Column(name = "cpf", nullable = false, length = 11)
     private String number;
+
+    /**
+     * Default constructor required by JPA.
+     */
+    protected Cpf() {
+    }
 
     /**
      * Creates a CPF value object.
      *
      * @param number CPF number with exactly 11 digits
-     * @throws InvalidCpfException if number is null or does not have 11 characters
+     * @throws InvalidCpfException if number is null or does not have exactly 11 digits
      */
     public Cpf(String number) {
         if(number == null || number.length() != 11) {
