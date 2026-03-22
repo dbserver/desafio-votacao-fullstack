@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -36,11 +37,11 @@ public class Pauta {
 
     /** Date and time when the agenda was created. */
     @Column(name = "created_at", nullable = false)
-    private ZonedDateTime createdAt;
+    private Instant createdAt;
 
     /** Date and time of the last update of the agenda. */
     @Column(name = "updated_at", nullable = false)
-    private ZonedDateTime updatedAt;
+    private Instant updatedAt;
 
     protected Pauta() {}
 
@@ -59,8 +60,8 @@ public class Pauta {
         this.name = name;
         this.description = description;
         this.isActive = true;
-        this.createdAt = ZonedDateTime.now();
-        this.updatedAt = ZonedDateTime.now();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     /**
@@ -135,7 +136,7 @@ public class Pauta {
      *
      * @return the creation date and time
      */
-    public ZonedDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
@@ -144,7 +145,7 @@ public class Pauta {
      *
      * @return the last update date and time
      */
-    public ZonedDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 
@@ -153,7 +154,7 @@ public class Pauta {
      *
      * @param updatedAt the new update date and time
      */
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
+    public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
 
