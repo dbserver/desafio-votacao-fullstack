@@ -9,7 +9,7 @@ import java.util.UUID;
  * Request payload to open a voting session for an agenda.
  *
  * @param pautaId agenda identifier
- * @param durationInSeconds session duration in seconds; when null, default duration is applied
+ * @param durationInSeconds session duration in seconds; when null or less than or equal to zero, default duration is applied
  */
 public record SessaoVotacaoRequestDTO(
         @NotNull(message = "The agenda id is required.")
@@ -19,4 +19,6 @@ public record SessaoVotacaoRequestDTO(
         Integer durationInSeconds
 ) {
 }
+
+
 
