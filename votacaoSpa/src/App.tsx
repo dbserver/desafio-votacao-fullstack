@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import ResponsiveLayout from './components/layout/ResponsiveLayout'
+import Layout from './components/layout/Layout'
 import { ToastProvider } from './components/ui/ToastProvider'
 import PautasPage from './pages/PautasPage'
 import VotarPage from './pages/VotarPage'
@@ -9,7 +9,7 @@ function App() {
     <ToastProvider>
       <BrowserRouter>
         <Routes>
-          <Route element={<ResponsiveLayout />}>
+          <Route element={<Layout />}>
             <Route index element={<Navigate to="pautas" replace />} />
             <Route path="pautas" element={<PautasPage />} />
             <Route path="votar/:pautaId/:sessaoId" element={<VotarPage />} />
