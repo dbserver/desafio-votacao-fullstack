@@ -1,86 +1,176 @@
-# Votação
+# Desafio Técnico - Sistema de Votação (Java + React)
 
-## Objetivo
+Implementação completa de uma solução de votação para cooperativas, com backend em Spring Boot, frontend em React e evidências de qualidade (testes, tratamento de erros, versionamento de API e teste de carga).
 
-No cooperativismo, cada associado possui um voto e as decisões são tomadas em assembleias, por votação. Imagine que você deve criar uma solução we para gerenciar e participar dessas sessões de votação.
-Essa solução deve ser executada na nuvem e promover as seguintes funcionalidades através de uma API REST / Front:
+## Visão geral
 
-- Cadastrar uma nova pauta
-- Abrir uma sessão de votação em uma pauta (a sessão de votação deve ficar aberta por
-  um tempo determinado na chamada de abertura ou 1 minuto por default)
-- Receber votos dos associados em pautas (os votos são apenas 'Sim'/'Não'. Cada associado
-  é identificado por um id único e pode votar apenas uma vez por pauta)
-- Contabilizar os votos e dar o resultado da votação na pauta
+O sistema atende os fluxos principais do desafio:
 
-Para fins de exercício, a segurança das interfaces pode ser abstraída e qualquer chamada para as interfaces pode ser considerada como autorizada. A solução deve ser construída em java com Spring-boot e Angular/React conforme orientação, mas os frameworks e bibliotecas são de livre escolha (desde que não infrinja direitos de uso).
+- Cadastro de pautas.
+- Abertura de sessão de votação por pauta (duração configurável, com default no backend).
+- Registro de votos por associado (`SIM`/`NAO`) com controle de voto único por pauta.
+- Apuração e exibição do resultado consolidado.
 
-É importante que as pautas e os votos sejam persistidos e que não sejam perdidos com o restart da aplicação.
+Também contempla os bônus técnicos:
 
-## Como proceder
+- Integração externa fake para validação de CPF/elegibilidade.
+- Teste de performance com k6.
+- Estratégia de versionamento de API.
 
-Por favor, realize o FORK desse repositório e implemente sua solução no FORK em seu repositório GItHub, ao final, notifique da conclusão para que possamos analisar o código implementado.
+## Arquitetura da solução
 
-Lembre de deixar todas as orientações necessárias para executar o seu código.
+### Backend (Spring Boot)
 
-### Tarefas bônus
+- Linguagem e stack: Java 21, Spring Boot, Spring MVC, Spring Data JPA, Jakarta Validation, Maven.
+- Persistência local em H2 modo arquivo para manter dados entre reinícios.
+- Organização em camadas: `controller`, `service`, `repository`, `dto`, `exception`, `config`.
+- Tratamento global de exceções com payload padronizado para facilitar observabilidade e consumo no frontend.
 
-- Tarefa Bônus 1 - Integração com sistemas externos
-  - Criar uma Facade/Client Fake que retorna aleátoriamente se um CPF recebido é válido ou não.
-  - Caso o CPF seja inválido, a API retornará o HTTP Status 404 (Not found). Você pode usar geradores de CPF para gerar CPFs válidos
-  - Caso o CPF seja válido, a API retornará se o usuário pode (ABLE_TO_VOTE) ou não pode (UNABLE_TO_VOTE) executar a operação. Essa operação retorna resultados aleatórios, portanto um mesmo CPF pode funcionar em um teste e não funcionar no outro.
+Referência detalhada: [votacao-api/README.md](votacao-api/README.md)
 
+### Frontend (React)
+
+- Stack: React 19, TypeScript, Vite, React Router.
+- Organização por domínio (`features/pautas`, `features/sessoes`, `features/votacao`) e componentes compartilhados.
+- Client HTTP centralizado e feedback de erro por toast com priorização de mensagens de negócio da API.
+- Layout responsivo e fluxo funcional completo de cadastro, abertura de sessão, votação e consulta de resultado.
+
+Referência detalhada: [votacaoSpa/README.md](votacaoSpa/README.md)
+
+## Qualidade e robustez
+
+- Testes automatizados no backend (camada de serviço e integração de tratamento de exceções).
+- Testes no frontend para componentes e utilitários críticos.
+- Regras de negócio protegidas em múltiplas camadas: validação de entrada, serviços e restrições de persistência.
+- API versionada por prefixo configurável (`/api/v1`), reduzindo risco de quebra para consumidores.
+
+## Bônus 1 - Integração com sistema externo fake
+
+Foi implementada uma facade/client fake para simular validação externa de CPF e elegibilidade de voto.
+
+Comportamento aplicado:
+
+- CPF inválido/inelegível pode resultar em bloqueio com `404 Not Found` (conforme regra do desafio).
+- CPF elegível segue para processamento de voto.
+
+Esse desenho valida resiliência do fluxo e tratamento de respostas não determinísticas de dependências externas.
+
+## Bônus 2 - Performance e estresse
+
+O backend foi preparado para cenário de alta concorrência com foco em throughput, latência e integridade de regra de negócio.
+
+Otimizações principais:
+
+- Indexação estratégica na tabela de votos.
+- Ajustes de pool de conexões (HikariCP) para absorção de picos de gravação.
+
+Cenário executado com k6:
+
+- 100 VUs por 30 segundos.
+- Alvo: `POST /api/v1/votos`.
+
+Evidências observadas (run documentado):
+
+- Alta taxa de processamento sustentada.
+- Latência baixa (média e p95 em milissegundos).
+- Ausência de erro interno 500 no cenário descrito.
+- Distribuição de respostas coerente com a regra fake de elegibilidade (aprox. 75% bloqueio / 25% sucesso).
+
+Referência detalhada: [teste-de-carga/README.md](teste-de-carga/README.md)
+
+## Bônus 3 - Versionamento da API
+
+Estratégia adotada: versionamento por URI (`/api/v1`).
+
+Motivos da escolha:
+
+- Simplicidade operacional.
+- Clareza para consumidores.
+- Facilidade para coexistência de versões (`/v1`, `/v2`) durante evolução.
+
+## Como executar o projeto completo
+
+### Pré-requisitos
+
+- Java 21+
+- Node.js 22+
+- npm 10+
+
+### 1. Subir backend
+
+```bash
+cd votacao-api
+./mvnw clean package
+./mvnw spring-boot:run
 ```
-// CPF Ok para votar
-{
-    "status": "ABLE_TO_VOTE
-}
-// CPF Nao Ok para votar - retornar 404 no client tb
-{
-    "status": "UNABLE_TO_VOTE
-}
+
+API base: `http://localhost:8080/api/v1`
+
+### 2. Subir frontend
+
+```bash
+cd votacaoSpa
+npm install
 ```
 
-Exemplos de retorno do serviço
+`.env` já definida com objetivo de facilitar para o avaliador:
 
-### Tarefa Bônus 2 - Performance
+Execute:
 
-- Imagine que sua aplicação possa ser usada em cenários que existam centenas de
-  milhares de votos. Ela deve se comportar de maneira performática nesses
-  cenários
-- Testes de performance são uma boa maneira de garantir e observar como sua
-  aplicação se comporta
+```bash
+npm start
+```
 
-### Tarefa Bônus 3 - Versionamento da API
+Frontend: `http://localhost:5173`
 
-○ Como você versionaria a API da sua aplicação? Que estratégia usar?
+### 3. Executar testes
 
-## O que será analisado
+Backend:
 
-- Simplicidade no design da solução (evitar over engineering)
-- Organização do código
-- Arquitetura do projeto
-- Boas práticas de programação (manutenibilidade, legibilidade etc)
-- Possíveis bugs
-- Tratamento de erros e exceções
-- Explicação breve do porquê das escolhas tomadas durante o desenvolvimento da solução
-- Uso de testes automatizados e ferramentas de qualidade
-- Limpeza do código
-- Documentação do código e da API
-- Logs da aplicação
-- Mensagens e organização dos commits
-- Testes
-- Layout responsivo
+```bash
+cd votacao-api
+./mvnw test
+```
 
-## Dicas
+Frontend:
 
-- Teste bem sua solução, evite bugs
+```bash
+cd votacaoSpa
+npm run test:run
+```
 
-  Observações importantes
-- Não inicie o teste sem sanar todas as dúvidas
-- Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
-  deixe claro caso haja instruções especiais para execução do mesmo
-  Classificação da informação: Uso Interno
+### 4. Executar teste de carga (opcional)
 
+```bash
+cd teste-de-carga
+k6 run load-test.js
+```
 
+Antes de executar, defina manualmente o `sessaoVotacaoId` em `load-test.js` com um ID válido no ambiente.
 
-# desafio-votacao
+## Endpoints principais
+
+- `POST /api/v1/pautas`
+- `GET /api/v1/pautas`
+- `POST /api/v1/sessoes`
+- `GET /api/v1/sessoes/pauta/{pautaId}`
+- `GET /api/v1/sessoes/{sessaoVotacaoId}/results`
+- `POST /api/v1/votos`
+
+## Decisões técnicas relevantes
+
+- Prioridade em simplicidade e legibilidade, evitando overengineering.
+- Separação clara de responsabilidades entre camadas e entre frontend/back.
+- Persistência local resiliente para avaliação rápida sem dependências externas obrigatórias.
+- Foco em comportamento determinístico de erros e mensagens para facilitar diagnóstico.
+- Estratégia de escalabilidade já considerada no desenho de apuração e votação.
+
+## Estrutura do repositório
+
+- [votacao-api](votacao-api): API Java Spring Boot.
+- [votacaoSpa](votacaoSpa): Aplicação React.
+- [teste-de-carga](teste-de-carga): Script e documentação de carga com k6.
+
+## Conclusão
+
+Esta entrega foi construída para equilibrar simplicidade de design, qualidade de engenharia e robustez operacional, cobrindo integralmente o escopo funcional do desafio e os bônus com evidências práticas de execução.
