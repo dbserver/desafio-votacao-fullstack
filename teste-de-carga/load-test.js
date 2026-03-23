@@ -10,7 +10,7 @@ export default function () {
     const cpfFake = Math.floor(10000000000 + Math.random() * 90000000000).toString();
     
     const payload = JSON.stringify({
-        sessaoVotacaoId: 'ad0c8721-6fb3-4e5a-a236-7285f4e2801d',
+        sessaoVotacaoId: '0d2d1990-813e-42cc-8750-7d4dcc0236df',
         cpf: cpfFake,
         vote: Math.random() > 0.5 ? 'SIM' : 'NAO'
     });
