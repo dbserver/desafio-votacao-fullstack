@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: desafio-votacao
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  threads:
+    virtual:
+      enabled: true
+  cache:
+    type: redis
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      integracao-cpf:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+  retry:
+    instances:
+      integracao-cpf:
+        maxAttempts: 3
+        waitDuration: 100
+        retryExceptions:
+          - java.io.IOException
+
+integracao:
+  cpf:
+    url: https://user-info.herokuapp.com
+  kafka:
+    topic-votos: votos-registrados-topic
+    topic-resultado-sessao: sessao-resultado-topic
+
+feign:
+  circuitbreaker:
+    enabled: true
+  client:
+    config:
+      clienteCpf:
+        connectTimeout: 5000
+        readTimeout: 5000
