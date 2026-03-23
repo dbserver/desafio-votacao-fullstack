@@ -1,0 +1,140 @@
+.state-text {
+  color: #476158;
+  font-weight: 600;
+}
+
+.state-box {
+  border: 1px dashed #bdd5cc;
+  border-radius: 0.9rem;
+  padding: 1rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.pauta-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.pauta-card {
+  background: #ffffff;
+  border: 1px solid #d7e2dc;
+  border-radius: 0.9rem;
+  padding: 0.9rem;
+}
+
+.pauta-card h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.pauta-card p {
+  margin-top: 0.45rem;
+  color: #4d635b;
+}
+
+.pauta-toggle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.pauta-toggle-main {
+  flex: 1;
+}
+
+.pauta-toggle-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 0.55rem;
+  border: 1px solid #bdd5cc;
+  color: #0f8a5f;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.sessoes-container {
+  margin-top: 0.8rem;
+  padding-top: 0.7rem;
+  border-top: 1px dashed #d7e2dc;
+}
+
+.sessoes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.sessoes-header h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #0f2c3e;
+  font-weight: 600;
+}
+
+.btn-create-sessao {
+  padding: 0.5rem 0.75rem;
+  background: #0f8a5f;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-create-sessao:hover {
+  background: #0d6f4a;
+}
+
+.btn-create-sessao:active {
+  transform: scale(0.98);
+}
+
+.sessao-state {
+  margin: 0;
+  color: #4d635b;
+  font-weight: 600;
+}
+
+.sessao-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.sessao-list-item {
+  list-style: none;
+}
+
+.sessao-item p:first-child {
+  margin-top: 0;
+}
+
+.action-button {
+  width: fit-content;
+  border: 1px solid #0f8a5f;
+  color: #0f8a5f;
+  background: #e9f8f1;
+  border-radius: 0.7rem;
+  padding: 0.5rem 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}

@@ -1,0 +1,25 @@
+.pautas-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.pautas-add-button {
+  width: 34px;
+  height: 34px;
+  border-radius: 0.7rem;
+  border: 1px solid #0f8a5f;
+  color: #0f8a5f;
+  background: #e9f8f1;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pautas-page-description {
+  margin-top: 0.55rem;
+  margin-bottom: 1rem;
+  color: #4d635b;
+}
