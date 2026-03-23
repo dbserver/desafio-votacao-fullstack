@@ -1,86 +1,324 @@
-# Votação
+# Voting API - Sistema de Votação para Cooperativas
 
-## Objetivo
+API REST desenvolvida em **Java 17 + Spring Boot** para gerenciamento de sessões de votação em cooperativas.
 
-No cooperativismo, cada associado possui um voto e as decisões são tomadas em assembleias, por votação. Imagine que você deve criar uma solução we para gerenciar e participar dessas sessões de votação.
-Essa solução deve ser executada na nuvem e promover as seguintes funcionalidades através de uma API REST / Front:
+O sistema permite cadastrar pautas, abrir sessões de votação, receber votos de associados e contabilizar o resultado da votação de forma performática e escalável.
 
-- Cadastrar uma nova pauta
-- Abrir uma sessão de votação em uma pauta (a sessão de votação deve ficar aberta por
-  um tempo determinado na chamada de abertura ou 1 minuto por default)
-- Receber votos dos associados em pautas (os votos são apenas 'Sim'/'Não'. Cada associado
-  é identificado por um id único e pode votar apenas uma vez por pauta)
-- Contabilizar os votos e dar o resultado da votação na pauta
+---
 
-Para fins de exercício, a segurança das interfaces pode ser abstraída e qualquer chamada para as interfaces pode ser considerada como autorizada. A solução deve ser construída em java com Spring-boot e Angular/React conforme orientação, mas os frameworks e bibliotecas são de livre escolha (desde que não infrinja direitos de uso).
+## Tecnologias utilizadas
 
-É importante que as pautas e os votos sejam persistidos e que não sejam perdidos com o restart da aplicação.
+* Java 17
+* Spring Boot
+* Spring Data JPA
+* PostgreSQL
+* Flyway (migrations)
+* Docker
+* Docker Compose
+* Swagger / OpenAPI
+* H2 Database (testes)
+* Maven
+* JUnit 5
 
-## Como proceder
+---
 
-Por favor, realize o FORK desse repositório e implemente sua solução no FORK em seu repositório GItHub, ao final, notifique da conclusão para que possamos analisar o código implementado.
+## Arquitetura do Projeto
 
-Lembre de deixar todas as orientações necessárias para executar o seu código.
-
-### Tarefas bônus
-
-- Tarefa Bônus 1 - Integração com sistemas externos
-  - Criar uma Facade/Client Fake que retorna aleátoriamente se um CPF recebido é válido ou não.
-  - Caso o CPF seja inválido, a API retornará o HTTP Status 404 (Not found). Você pode usar geradores de CPF para gerar CPFs válidos
-  - Caso o CPF seja válido, a API retornará se o usuário pode (ABLE_TO_VOTE) ou não pode (UNABLE_TO_VOTE) executar a operação. Essa operação retorna resultados aleatórios, portanto um mesmo CPF pode funcionar em um teste e não funcionar no outro.
+O projeto foi desenvolvido seguindo boas práticas de arquitetura em APIs REST:
 
 ```
-// CPF Ok para votar
-{
-    "status": "ABLE_TO_VOTE
-}
-// CPF Nao Ok para votar - retornar 404 no client tb
-{
-    "status": "UNABLE_TO_VOTE
-}
+controller
+service
+repository
+entity
+dto
+external
+exception
+config
 ```
 
-Exemplos de retorno do serviço
+Princípios utilizados:
 
-### Tarefa Bônus 2 - Performance
+* Separação de responsabilidades
+* DTO desde o início do projeto
+* Uso de record (Java 17)
+* Tratamento global de exceções
+* Código limpo e organizado
+* Versionamento de API
+* Estrutura preparada para evolução futura
 
-- Imagine que sua aplicação possa ser usada em cenários que existam centenas de
-  milhares de votos. Ela deve se comportar de maneira performática nesses
-  cenários
-- Testes de performance são uma boa maneira de garantir e observar como sua
-  aplicação se comporta
+---
 
-### Tarefa Bônus 3 - Versionamento da API
+## Funcionalidades da API
 
-○ Como você versionaria a API da sua aplicação? Que estratégia usar?
+A API permite:
 
-## O que será analisado
+* Cadastrar uma nova pauta
+* Abrir uma sessão de votação para uma pauta
+* Receber votos de associados
+* Impedir votos duplicados
+* Encerrar sessões automaticamente
+* Contabilizar votos (Sim / Não)
+* Retornar resultado da votação
+* Integração com serviço externo fake para validação de CPF
+* Suporte a alto volume de votos
 
-- Simplicidade no design da solução (evitar over engineering)
-- Organização do código
-- Arquitetura do projeto
-- Boas práticas de programação (manutenibilidade, legibilidade etc)
-- Possíveis bugs
-- Tratamento de erros e exceções
-- Explicação breve do porquê das escolhas tomadas durante o desenvolvimento da solução
-- Uso de testes automatizados e ferramentas de qualidade
-- Limpeza do código
-- Documentação do código e da API
-- Logs da aplicação
-- Mensagens e organização dos commits
-- Testes
-- Layout responsivo
+---
 
-## Dicas
+## Versionamento da API
 
-- Teste bem sua solução, evite bugs
+A API foi versionada utilizando prefixo na URL:
 
-  Observações importantes
-- Não inicie o teste sem sanar todas as dúvidas
-- Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
-  deixe claro caso haja instruções especiais para execução do mesmo
-  Classificação da informação: Uso Interno
+```
+/api/v1
+```
 
+Exemplo:
 
+```
+POST /api/v1/agenda
+POST /api/v1/agenda/{id}/session
+POST /api/v1/votos
+GET  /api/v1/agenda/{id}/result
+```
 
-# desafio-votacao
+---
+
+## Como executar o projeto
+
+### Pré-requisitos
+
+* Docker
+* Docker Compose
+* Java 17
+* Maven
+
+---
+
+### 1) Entrar na pasta do projeto
+
+```
+cd voting-api
+```
+
+---
+
+### 2) Gerar o jar da aplicação
+
+```
+mvn clean package
+```
+
+---
+
+### 3) Subir a aplicação com Docker
+
+```
+docker-compose up --build
+```
+
+---
+
+## Acessar a documentação da API
+
+Após subir o projeto:
+
+```
+http://localhost:8080/swagger-ui/index.html
+```
+
+---
+
+## Banco de dados
+
+O projeto utiliza:
+
+* PostgreSQL em ambiente Docker
+* H2 Database para testes automatizados
+
+As migrations são gerenciadas com Flyway.
+
+---
+
+## Performance
+
+A API foi preparada para cenários com alto volume de votos.
+
+Melhorias aplicadas:
+
+* Índice no banco de dados
+* Constraint para evitar votos duplicados
+* Query otimizada para contagem de votos
+* Contagem feita diretamente no banco (sem carregar todos os registros na memória)
+
+---
+
+## Integração com serviço externo (Bônus)
+
+Foi implementado um client fake para simular validação de CPF.
+
+O serviço retorna:
+
+* ABLE_TO_VOTE
+* UNABLE_TO_VOTE
+
+Isso permite simular integração com sistemas externos.
+
+---
+
+## Testes
+
+O projeto possui:
+
+* Testes unitários
+* Testes de service
+* Testes utilizando H2 Database
+
+---
+
+## Boas práticas aplicadas
+
+* Conventional Commits
+* Versionamento semântico
+* Código limpo
+* DTO desde o início
+* Record (Java 17)
+* Arquitetura em camadas
+* Tratamento global de exceções
+* Documentação com Swagger
+* Docker para execução simples
+
+---
+
+# 🗳️ Voting Frontend
+
+Sistema de votação moderno e responsivo desenvolvido com React e TypeScript. Permite que usuários registrem votos em pautas compartilhadas com interface intuitiva e segura.
+
+## 📋 Descrição
+
+O **Voting Frontend** é a interface web para um sistema de votação distribuído. Permite:
+
+- 📝 Visualizar pautas de votação em tempo real
+- 🗳️ Registrar votos anônimos e seguros
+- ⏱️ Acompanhar o tempo restante da sessão de votação
+- 📊 Compartilhar links de votação via clipboard
+- 🔒 Validações de segurança (CPF único por voto)
+- 📱 Interface responsiva para desktop e mobile
+
+## 🛠️ Tecnologias Utilizadas
+
+- **React** (19.2.4) - Framework UI
+- **TypeScript** (5.9.3) - Tipagem estática
+- **Vite** (8.0.1) - Bundler e dev server
+- **React Router DOM** (7.13.1) - Roteamento
+- **Tailwind CSS** (4.2.2) - Estilização
+- **Axios** (1.13.6) - Cliente HTTP
+- **ESLint** (9.39.4) - Linting e qualidade de código
+
+## 📋 Pré-requisitos
+
+Antes de começar, certifique-se de que você tem instalado:
+
+- **Node.js** (versão 16.0.0 ou superior)
+- **npm** (versão 7.0.0 ou superior)
+
+## 🚀 Instalação
+
+1. **Clone o repositório ou extraia os arquivos:**
+
+```bash
+cd voting-frontend
+```
+
+2. **Instale as dependências:**
+
+```bash
+npm install
+```
+
+## 💻 Executando Localmente
+
+### Modo Desenvolvimento
+
+Para iniciar o servidor de desenvolvimento com Hot Module Replacement (HMR):
+
+```bash
+npm run dev
+```
+
+O aplicativo estará disponível em:
+- **http://localhost:5173** (padrão Vite)
+- Ou a URL exibida no terminal
+
+### Build para Produção
+
+Para compilar a aplicação para produção:
+
+```bash
+npm run build
+```
+
+Os arquivos otimizados serão gerados na pasta `dist/`.
+
+### Preview de Produção
+
+Para visualizar o build de produção localmente:
+
+```bash
+npm run preview
+```
+
+### Linting
+
+Para verificar a qualidade do código:
+
+```bash
+npm run lint
+```
+
+## 📁 Estrutura do Projeto
+
+```
+src/
+├── components/      # Componentes reutilizáveis
+├── layouts/         # Layouts da aplicação
+├── pages/           # Páginas principais
+├── routes/          # Configuração de rotas
+├── services/        # Serviços (API, lógica)
+├── types/           # Tipos TypeScript
+├── styles/          # Estilos globais
+└── App.tsx          # Componente raiz
+```
+
+## 🔗 Endpoints da API
+
+A aplicação se conecta com os seguintes serviços:
+
+- **Obter Pauta**: `GET /api/agendas/:id`
+- **Registrar Voto**: `POST /api/votes`
+- **Obter Resultado**: `GET /api/votes/result/:agendaId`
+
+> Configure a URL base da API no arquivo `src/services/api.ts`
+
+## ⚙️ Configuração
+
+### Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto (opcional):
+
+```env
+VITE_API_URL=http://localhost:8080
+```
+
+> Se não configurado, a aplicação usa a URL padrão definida em `src/services/api.ts`
+
+## 🧪 Funcionalidades Principais
+
+- ✅ Listagem de pautas
+- ✅ Detalhes da pauta com timer em tempo real
+- ✅ Registro de voto com validação de CPF
+- ✅ Modal de confirmação de voto
+- ✅ Compartilhamento de link de votação
+- ✅ Exibição de resultado de votos
+- ✅ Sessão de votação com tempo limite
+
