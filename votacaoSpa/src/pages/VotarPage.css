@@ -1,0 +1,15 @@
+.back-to-pautas-button {
+  margin-bottom: 0.8rem;
+  border: 1px solid #bdd5cc;
+  background: #f7fbf9;
+  color: #28433a;
+  border-radius: 0.6rem;
+  padding: 0.45rem 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sessao-context {
+  color: #666;
+  font-size: 0.9rem;
+}
