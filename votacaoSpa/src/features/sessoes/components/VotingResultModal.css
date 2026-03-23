@@ -1,0 +1,49 @@
+.result-modal {
+  max-width: 460px;
+}
+
+.result-loading {
+  margin: 0;
+  color: #4d635b;
+  font-weight: 600;
+}
+
+.result-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.result-item {
+  border: 1px solid #d7e2dc;
+  border-radius: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  background: #f9fcfb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.result-item span {
+  color: #4d635b;
+  font-weight: 600;
+}
+
+.result-item strong {
+  color: #0f2c3e;
+  font-size: 1rem;
+}
+
+.result-item--yes {
+  border-color: #8fd8b4;
+  background: #f0fdf4;
+}
+
+.result-item--no {
+  border-color: #f2b6b6;
+  background: #fef2f2;
+}
+
+.result-item--final {
+  border-color: #bcd8ff;
+  background: #f3f8ff;
+}
