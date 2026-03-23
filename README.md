@@ -1,86 +1,222 @@
-# Votação
+# Desafio Votação - Fullstack
 
-## Objetivo
+Sistema web para gerenciamento e participação em sessões de votação de cooperativas, construído com Java Spring Boot e React.
 
-No cooperativismo, cada associado possui um voto e as decisões são tomadas em assembleias, por votação. Imagine que você deve criar uma solução we para gerenciar e participar dessas sessões de votação.
-Essa solução deve ser executada na nuvem e promover as seguintes funcionalidades através de uma API REST / Front:
+## Tecnologias Utilizadas
 
-- Cadastrar uma nova pauta
-- Abrir uma sessão de votação em uma pauta (a sessão de votação deve ficar aberta por
-  um tempo determinado na chamada de abertura ou 1 minuto por default)
-- Receber votos dos associados em pautas (os votos são apenas 'Sim'/'Não'. Cada associado
-  é identificado por um id único e pode votar apenas uma vez por pauta)
-- Contabilizar os votos e dar o resultado da votação na pauta
+### Backend
 
-Para fins de exercício, a segurança das interfaces pode ser abstraída e qualquer chamada para as interfaces pode ser considerada como autorizada. A solução deve ser construída em java com Spring-boot e Angular/React conforme orientação, mas os frameworks e bibliotecas são de livre escolha (desde que não infrinja direitos de uso).
+- Java 17
+- Spring Boot 3.2.3
+- Spring Data JPA
+- PostgreSQL (produção) / H2 (desenvolvimento/testes)
+- Bean Validation
+- Springdoc OpenAPI (Swagger UI)
+- Lombok
+- JUnit 5 + Mockito + AssertJ
 
-É importante que as pautas e os votos sejam persistidos e que não sejam perdidos com o restart da aplicação.
+### Frontend
 
-## Como proceder
+- React 18 + TypeScript
+- Material UI 5
+- React Router 6
+- Axios
+- Vite
 
-Por favor, realize o FORK desse repositório e implemente sua solução no FORK em seu repositório GItHub, ao final, notifique da conclusão para que possamos analisar o código implementado.
+### Infraestrutura
 
-Lembre de deixar todas as orientações necessárias para executar o seu código.
+- Docker + Docker Compose
 
-### Tarefas bônus
+---
 
-- Tarefa Bônus 1 - Integração com sistemas externos
-  - Criar uma Facade/Client Fake que retorna aleátoriamente se um CPF recebido é válido ou não.
-  - Caso o CPF seja inválido, a API retornará o HTTP Status 404 (Not found). Você pode usar geradores de CPF para gerar CPFs válidos
-  - Caso o CPF seja válido, a API retornará se o usuário pode (ABLE_TO_VOTE) ou não pode (UNABLE_TO_VOTE) executar a operação. Essa operação retorna resultados aleatórios, portanto um mesmo CPF pode funcionar em um teste e não funcionar no outro.
+## Como Executar
+
+### Opção 1: Docker Compose (recomendado)
+
+Sobe backend, frontend e PostgreSQL de uma vez:
+
+```bash
+docker-compose up --build
+```
+
+| Serviço  | URL                                   |
+| -------- | ------------------------------------- |
+| Frontend | http://localhost:3000                 |
+| Backend  | http://localhost:8080                 |
+| Swagger  | http://localhost:8080/swagger-ui.html |
+
+### Opção 2: Execução Local
+
+#### Backend
+
+Requisitos: **Java 17+**, **Maven 3.9+**
+
+```bash
+cd backend
+
+# Com banco H2 (sem necessidade de instalar PostgreSQL)
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Com PostgreSQL (configurar application.yml)
+mvn spring-boot:run
+```
+
+O backend estará disponível em `http://localhost:8080`.
+
+#### Frontend
+
+Requisitos: **Node.js 18+**
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O frontend estará disponível em `http://localhost:3000`.
+
+---
+
+## API Endpoints
+
+Base URL: `/api/v1`
+
+| Método | Endpoint                            | Descrição               |
+| ------ | ----------------------------------- | ----------------------- |
+| POST   | `/pautas`                           | Cadastrar nova pauta    |
+| GET    | `/pautas`                           | Listar todas as pautas  |
+| GET    | `/pautas/{id}`                      | Buscar pauta por ID     |
+| POST   | `/sessoes`                          | Abrir sessão de votação |
+| GET    | `/sessoes/pauta/{pautaId}`          | Buscar sessão por pauta |
+| POST   | `/pautas/{pautaId}/votos`           | Registrar voto          |
+| GET    | `/pautas/{pautaId}/votos/resultado` | Resultado da votação    |
+
+Documentação interativa: `http://localhost:8080/swagger-ui.html`
+
+### Exemplos de Requisições
+
+**Criar Pauta:**
+
+```json
+POST /api/v1/pautas
+{
+  "titulo": "Aprovação do orçamento 2024",
+  "descricao": "Votação para aprovação do orçamento anual"
+}
+```
+
+**Abrir Sessão (duração em minutos, padrão: 1):**
+
+```json
+POST /api/v1/sessoes
+{
+  "pautaId": 1,
+  "duracaoMinutos": 5
+}
+```
+
+**Registrar Voto:**
+
+```json
+POST /api/v1/pautas/1/votos
+{
+  "associadoId": "12345678909",
+  "voto": "SIM"
+}
+```
+
+---
+
+## Testes
+
+```bash
+cd backend
+mvn test
+```
+
+Os testes cobrem:
+
+- **Unitários**: Services (PautaService, SessaoVotacaoService, VotoService)
+- **Integração**: Controllers com MockMvc e banco H2
+- **Cenários**: criação, validação, erros de negócio, resultados
+
+---
+
+## Decisões Técnicas
+
+### Arquitetura
+
+Arquitetura em camadas (Controller → Service → Repository), adequada à complexidade do projeto. Mantém boa separação de responsabilidades sem over-engineering.
+
+### Persistência
+
+PostgreSQL para produção por ser robusto e confiável. Profile `dev` com H2 file-based para desenvolvimento local sem dependências externas. Os dados persistem entre restarts em ambos os cenários.
+
+### Controle de Sessão de Votação
+
+A verificação se a sessão está aberta é feita comparando `LocalDateTime.now()` com o `dataFim` da sessão. Mais simples e confiável que usar schedulers, sem estado mutável adicional.
+
+### DTOs com Java Records
+
+Utilização de Records do Java para os DTOs, reduzindo boilerplate e tornando as classes imutáveis por padrão.
+
+### Validação de CPF (Bônus 1)
+
+Client fake (`CpfValidationClient`) que:
+
+1. Valida o formato do CPF pelo algoritmo de dígitos verificadores
+2. CPF com formato inválido → HTTP 404
+3. CPF válido → retorna aleatoriamente `ABLE_TO_VOTE` ou `UNABLE_TO_VOTE`
+
+### Performance (Bônus 2)
+
+- Índice composto em `(sessao_id, voto)` para otimizar contagem de votos
+- Constraint unique em `(sessao_id, associado_id)` garante unicidade e cria índice
+- Consultas com `COUNT` direto no banco ao invés de carregar registros em memória
+- Fetch lazy em relacionamentos para evitar queries desnecessárias
+
+### Versionamento da API (Bônus 3)
+
+Estratégia por **URL path** (`/api/v1/`). Escolhida por ser:
+
+- Explícita e simples de entender
+- Facilita coexistência de múltiplas versões
+- Boa visibilidade para monitoramento e roteamento
+- Padrão amplamente adotado no mercado
+
+Alternativas consideradas:
+
+- **Header versioning**: menos visível na URL, dificulta testes via browser
+- **Query parameter**: não semântico para versionamento
+- **Content negotiation**: complexidade desnecessária para este cenário
+
+---
+
+## Estrutura do Projeto
 
 ```
-// CPF Ok para votar
-{
-    "status": "ABLE_TO_VOTE
-}
-// CPF Nao Ok para votar - retornar 404 no client tb
-{
-    "status": "UNABLE_TO_VOTE
-}
+├── backend/
+│   ├── src/main/java/com/dbserver/votacao/
+│   │   ├── client/          # Client fake de validação de CPF
+│   │   ├── config/          # Configurações (CORS, OpenAPI)
+│   │   ├── controller/      # Controllers REST
+│   │   ├── dto/             # Records de request/response
+│   │   ├── entity/          # Entidades JPA
+│   │   ├── enums/           # Enumerações
+│   │   ├── exception/       # Exceções e handler global
+│   │   ├── repository/      # Repositórios Spring Data
+│   │   └── service/         # Regras de negócio
+│   ├── src/test/            # Testes unitários e de integração
+│   ├── pom.xml
+│   └── Dockerfile
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # Componentes reutilizáveis
+│   │   ├── pages/           # Páginas da aplicação
+│   │   ├── services/        # Serviços de API
+│   │   └── types/           # Tipagens TypeScript
+│   ├── package.json
+│   └── Dockerfile
+├── docker-compose.yml
+└── README.md
 ```
-
-Exemplos de retorno do serviço
-
-### Tarefa Bônus 2 - Performance
-
-- Imagine que sua aplicação possa ser usada em cenários que existam centenas de
-  milhares de votos. Ela deve se comportar de maneira performática nesses
-  cenários
-- Testes de performance são uma boa maneira de garantir e observar como sua
-  aplicação se comporta
-
-### Tarefa Bônus 3 - Versionamento da API
-
-○ Como você versionaria a API da sua aplicação? Que estratégia usar?
-
-## O que será analisado
-
-- Simplicidade no design da solução (evitar over engineering)
-- Organização do código
-- Arquitetura do projeto
-- Boas práticas de programação (manutenibilidade, legibilidade etc)
-- Possíveis bugs
-- Tratamento de erros e exceções
-- Explicação breve do porquê das escolhas tomadas durante o desenvolvimento da solução
-- Uso de testes automatizados e ferramentas de qualidade
-- Limpeza do código
-- Documentação do código e da API
-- Logs da aplicação
-- Mensagens e organização dos commits
-- Testes
-- Layout responsivo
-
-## Dicas
-
-- Teste bem sua solução, evite bugs
-
-  Observações importantes
-- Não inicie o teste sem sanar todas as dúvidas
-- Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
-  deixe claro caso haja instruções especiais para execução do mesmo
-  Classificação da informação: Uso Interno
-
-
-
-# desafio-votacao
