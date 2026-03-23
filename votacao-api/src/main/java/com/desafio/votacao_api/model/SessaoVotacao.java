@@ -3,7 +3,6 @@ package com.desafio.votacao_api.model;
 import jakarta.persistence.*;
 
 import java.time.Instant;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -13,7 +12,12 @@ import java.util.UUID;
  * {@code finalSessionDateTime}.</p>
  */
 @Entity
-@Table(name = "sessao_votacao")
+@Table(
+        name = "sessao_votacao",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"pauta_id"})
+        }
+)
 public class SessaoVotacao {
 
     private static final long DEFAULT_DURATION_SECONDS = 60L;
@@ -22,8 +26,8 @@ public class SessaoVotacao {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pauta_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pauta_id", nullable = false, unique = true)
     private Pauta pauta;
 
     @Column(name = "created_at", nullable = false)

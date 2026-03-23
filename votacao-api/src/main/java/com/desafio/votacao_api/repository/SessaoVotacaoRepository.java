@@ -4,6 +4,7 @@ import com.desafio.votacao_api.model.SessaoVotacao;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -11,5 +12,8 @@ import java.util.UUID;
  */
 @Repository
 public interface SessaoVotacaoRepository extends JpaRepository<SessaoVotacao, UUID> {
+	boolean existsByPautaId(UUID pautaId);
+
+	List<SessaoVotacao> findAllByPautaIdOrderByCreatedAtDesc(UUID pautaId);
 }
 

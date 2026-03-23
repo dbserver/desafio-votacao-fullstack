@@ -3,6 +3,7 @@ package com.desafio.votacao_api.service;
 import com.desafio.votacao_api.dto.VotoRequestDTO;
 import com.desafio.votacao_api.dto.VotoResponseDTO;
 import com.desafio.votacao_api.exception.CpfNotFoundException;
+import com.desafio.votacao_api.exception.CpfAlreadyVotedOnPautaException;
 import com.desafio.votacao_api.exception.InvalidCpfException;
 import com.desafio.votacao_api.exception.SessionClosedException;
 import com.desafio.votacao_api.exception.UnableToVoteException;
@@ -131,6 +132,21 @@ class VotoServiceTest {
                 .validateCpfNumber("12345678901");
 
         assertThrows(UnableToVoteException.class, () -> votoService.registerVote(request));
+        verify(votoRepository, never()).save(any(Voto.class));
+    }
+
+    @Test
+    void registerVoteShouldThrowWhenCpfAlreadyVotedOnPauta() throws Exception {
+        UUID sessaoId = UUID.randomUUID();
+        SessaoVotacao sessao = createOpenSession(sessaoId);
+        UUID pautaId = sessao.getPauta().getId();
+        VotoRequestDTO request = new VotoRequestDTO(sessaoId, "12345678901", VotoValue.SIM);
+
+        when(sessaoVotacaoService.getSessaoVotacaoByIdInternal(sessaoId)).thenReturn(sessao);
+        when(votoRepository.existsActiveVoteByPautaIdAndCpf(pautaId, "12345678901")).thenReturn(true);
+
+        assertThrows(CpfAlreadyVotedOnPautaException.class, () -> votoService.registerVote(request));
+        verify(cpfValidationFacade, never()).validateCpfNumber(any(String.class));
         verify(votoRepository, never()).save(any(Voto.class));
     }
 

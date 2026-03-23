@@ -157,15 +157,19 @@ public class GlobalExceptionHandler {
      * @param request the current web request
      * @return ResponseEntity with status 409 (Conflict)
      */
-    @ExceptionHandler(SessionClosedException.class)
+    @ExceptionHandler({
+            SessionClosedException.class,
+            SessionAlreadyExistsForPautaException.class,
+            CpfAlreadyVotedOnPautaException.class
+    })
     public ResponseEntity<ErrorResponseDTO> handleSessionClosedException(
-            SessionClosedException exception,
+            RuntimeException exception,
             WebRequest request) {
-        LOGGER.warn("Voting session closed: {}", exception.getMessage());
+        LOGGER.warn("Business conflict: {}", exception.getMessage());
         ErrorResponseDTO error = new ErrorResponseDTO(
                 Instant.now(),
                 HttpStatus.CONFLICT.value(),
-                "Voting Session Closed",
+                "Business Rule Conflict",
                 exception.getMessage(),
                 request.getDescription(false).replace("uri=", "")
         );

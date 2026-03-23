@@ -5,6 +5,7 @@ import com.desafio.votacao_api.dto.SessaoVotacaoResponseDTO;
 import com.desafio.votacao_api.dto.VotingResultDTO;
 import com.desafio.votacao_api.exception.PautaNotFoundException;
 import com.desafio.votacao_api.exception.SessaoVotacaoNotFoundException;
+import com.desafio.votacao_api.exception.SessionAlreadyExistsForPautaException;
 import com.desafio.votacao_api.model.Pauta;
 import com.desafio.votacao_api.model.SessaoVotacao;
 import com.desafio.votacao_api.model.enums.VotoValue;
@@ -12,6 +13,7 @@ import com.desafio.votacao_api.repository.SessaoVotacaoRepository;
 import com.desafio.votacao_api.repository.VotoRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -51,6 +53,13 @@ public class SessaoVotacaoService {
      */
     public SessaoVotacaoResponseDTO openSession(SessaoVotacaoRequestDTO request) {
         Pauta pauta = this.pautaService.getPautaByIdInternal(request.pautaId());
+
+        if (sessaoVotacaoRepository.existsByPautaId(request.pautaId())) {
+            throw new SessionAlreadyExistsForPautaException(
+                    "Agenda with id " + request.pautaId() + " already has a voting session."
+            );
+        }
+
         int durationInSeconds = request.durationInSeconds() != null ? request.durationInSeconds() : 0;
         SessaoVotacao sessao = SessaoVotacao.openSession(pauta, durationInSeconds);
         SessaoVotacao savedSessao = sessaoVotacaoRepository.save(sessao);
@@ -68,6 +77,22 @@ public class SessaoVotacaoService {
         SessaoVotacao sessao = sessaoVotacaoRepository.findById(id).orElseThrow(() ->
                 new SessaoVotacaoNotFoundException("Voting session with id " + id + " not found."));
         return SessaoVotacaoResponseDTO.fromEntity(sessao);
+    }
+
+    /**
+     * Retrieves all voting sessions associated with a given agenda.
+     *
+     * @param pautaId the unique identifier of the agenda
+     * @return list of sessions for the agenda
+     * @throws PautaNotFoundException if the agenda does not exist
+     */
+    public List<SessaoVotacaoResponseDTO> getSessoesByPautaId(UUID pautaId) {
+        this.pautaService.getPautaByIdInternal(pautaId);
+
+        List<SessaoVotacao> sessoes = sessaoVotacaoRepository.findAllByPautaIdOrderByCreatedAtDesc(pautaId);
+        return sessoes.stream()
+                .map(SessaoVotacaoResponseDTO::fromEntity)
+                .toList();
     }
 
     /**

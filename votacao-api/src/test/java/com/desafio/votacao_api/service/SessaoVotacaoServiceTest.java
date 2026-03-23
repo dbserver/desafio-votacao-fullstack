@@ -3,7 +3,9 @@ package com.desafio.votacao_api.service;
 import com.desafio.votacao_api.dto.SessaoVotacaoRequestDTO;
 import com.desafio.votacao_api.dto.SessaoVotacaoResponseDTO;
 import com.desafio.votacao_api.dto.VotingResultDTO;
+import com.desafio.votacao_api.exception.PautaNotFoundException;
 import com.desafio.votacao_api.exception.SessaoVotacaoNotFoundException;
+import com.desafio.votacao_api.exception.SessionAlreadyExistsForPautaException;
 import com.desafio.votacao_api.model.Pauta;
 import com.desafio.votacao_api.model.SessaoVotacao;
 import com.desafio.votacao_api.model.enums.VotoValue;
@@ -17,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -82,6 +85,19 @@ class SessaoVotacaoServiceTest {
     }
 
     @Test
+    void openSessionShouldThrowWhenPautaAlreadyHasSession() throws Exception {
+        UUID pautaId = UUID.randomUUID();
+        Pauta pauta = createPautaWithId(pautaId);
+        SessaoVotacaoRequestDTO request = new SessaoVotacaoRequestDTO(pautaId, 60);
+
+        when(pautaService.getPautaByIdInternal(pautaId)).thenReturn(pauta);
+        when(sessaoVotacaoRepository.existsByPautaId(pautaId)).thenReturn(true);
+
+        assertThrows(SessionAlreadyExistsForPautaException.class, () -> sessaoVotacaoService.openSession(request));
+        verify(sessaoVotacaoRepository, never()).save(any(SessaoVotacao.class));
+    }
+
+    @Test
     void getSessaoVotacaoByIdShouldReturnResponseWhenFound() throws Exception {
         UUID pautaId = UUID.randomUUID();
         UUID sessaoId = UUID.randomUUID();
@@ -110,6 +126,40 @@ class SessaoVotacaoServiceTest {
         when(sessaoVotacaoRepository.findById(sessaoId)).thenReturn(Optional.empty());
 
         assertThrows(SessaoVotacaoNotFoundException.class, () -> sessaoVotacaoService.getSessaoVotacaoByIdInternal(sessaoId));
+    }
+
+    @Test
+    void getSessoesByPautaIdShouldReturnMappedListWhenPautaExists() throws Exception {
+        UUID pautaId = UUID.randomUUID();
+        UUID sessaoIdOne = UUID.randomUUID();
+        UUID sessaoIdTwo = UUID.randomUUID();
+
+        Pauta pauta = createPautaWithId(pautaId);
+        SessaoVotacao sessaoOne = createSessionWithIds(sessaoIdOne, pautaId, 60);
+        SessaoVotacao sessaoTwo = createSessionWithIds(sessaoIdTwo, pautaId, 120);
+
+        when(pautaService.getPautaByIdInternal(pautaId)).thenReturn(pauta);
+        when(sessaoVotacaoRepository.findAllByPautaIdOrderByCreatedAtDesc(pautaId))
+                .thenReturn(List.of(sessaoOne, sessaoTwo));
+
+        List<SessaoVotacaoResponseDTO> response = sessaoVotacaoService.getSessoesByPautaId(pautaId);
+
+        assertEquals(2, response.size());
+        assertEquals(sessaoIdOne, response.get(0).id());
+        assertEquals(sessaoIdTwo, response.get(1).id());
+        assertEquals(pautaId, response.get(0).pautaId());
+
+        verify(pautaService, times(1)).getPautaByIdInternal(pautaId);
+        verify(sessaoVotacaoRepository, times(1)).findAllByPautaIdOrderByCreatedAtDesc(pautaId);
+    }
+
+    @Test
+    void getSessoesByPautaIdShouldThrowWhenPautaDoesNotExist() {
+        UUID pautaId = UUID.randomUUID();
+        when(pautaService.getPautaByIdInternal(pautaId)).thenThrow(new PautaNotFoundException("Pauta not found"));
+
+        assertThrows(PautaNotFoundException.class, () -> sessaoVotacaoService.getSessoesByPautaId(pautaId));
+        verify(sessaoVotacaoRepository, never()).findAllByPautaIdOrderByCreatedAtDesc(any(UUID.class));
     }
 
     @Test

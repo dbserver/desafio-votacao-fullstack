@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -53,6 +54,18 @@ public class SessaoVotacaoController {
     @GetMapping("/{id}")
     public ResponseEntity<SessaoVotacaoResponseDTO> getSessaoVotacaoById(@PathVariable UUID id) {
         SessaoVotacaoResponseDTO response = sessaoVotacaoService.getSessaoVotacaoById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Retrieves all voting sessions associated with a specific agenda.
+     *
+     * @param pautaId the unique identifier of the agenda
+     * @return ResponseEntity with status 200 (OK) and the list of sessions
+     */
+    @GetMapping("/pauta/{pautaId}")
+    public ResponseEntity<List<SessaoVotacaoResponseDTO>> getSessoesByPautaId(@PathVariable UUID pautaId) {
+        List<SessaoVotacaoResponseDTO> response = sessaoVotacaoService.getSessoesByPautaId(pautaId);
         return ResponseEntity.ok(response);
     }
 

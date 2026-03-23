@@ -2,6 +2,7 @@ package com.desafio.votacao_api.service;
 
 import com.desafio.votacao_api.dto.VotoRequestDTO;
 import com.desafio.votacao_api.dto.VotoResponseDTO;
+import com.desafio.votacao_api.exception.CpfAlreadyVotedOnPautaException;
 import com.desafio.votacao_api.exception.SessaoVotacaoNotFoundException;
 import com.desafio.votacao_api.exception.SessionClosedException;
 import com.desafio.votacao_api.exception.VotoNotFoundException;
@@ -53,9 +54,16 @@ public class VotoService {
      */
     public VotoResponseDTO registerVote(VotoRequestDTO request) {
         SessaoVotacao sessao = this.sessaoVotacaoService.getSessaoVotacaoByIdInternal(request.sessaoVotacaoId());
+        UUID pautaId = sessao.getPauta().getId();
 
         if (!sessao.isOpen()) {
             throw new SessionClosedException("Voting session is closed. No more votes can be registered.");
+        }
+
+        if (votoRepository.existsActiveVoteByPautaIdAndCpf(pautaId, request.cpf())) {
+            throw new CpfAlreadyVotedOnPautaException(
+                    "CPF " + request.cpf() + " has already voted on agenda " + pautaId + "."
+            );
         }
 
         cpfValidationFacade.validateCpfNumber(request.cpf());
