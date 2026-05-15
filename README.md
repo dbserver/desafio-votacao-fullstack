@@ -1,86 +1,144 @@
-# Votação
+# Votação Cooperativista — Fullstack
 
-## Objetivo
+Sistema para gerenciamento de pautas e sessões de votação em cooperativas.
 
-No cooperativismo, cada associado possui um voto e as decisões são tomadas em assembleias, por votação. Imagine que você deve criar uma solução we para gerenciar e participar dessas sessões de votação.
-Essa solução deve ser executada na nuvem e promover as seguintes funcionalidades através de uma API REST / Front:
+## Stack
 
-- Cadastrar uma nova pauta
-- Abrir uma sessão de votação em uma pauta (a sessão de votação deve ficar aberta por
-  um tempo determinado na chamada de abertura ou 1 minuto por default)
-- Receber votos dos associados em pautas (os votos são apenas 'Sim'/'Não'. Cada associado
-  é identificado por um id único e pode votar apenas uma vez por pauta)
-- Contabilizar os votos e dar o resultado da votação na pauta
+| Camada    | Tecnologia                                                                 |
+|-----------|----------------------------------------------------------------------------|
+| Backend   | Java 21, Spring Boot 3.3, PostgreSQL 16, Flyway, MapStruct, Springdoc     |
+| Frontend  | React 18, TypeScript, Vite 5, TailwindCSS 3, React Query 5, React Router 6 |
+| Infra     | Docker, Docker Compose, Nginx                                              |
 
-Para fins de exercício, a segurança das interfaces pode ser abstraída e qualquer chamada para as interfaces pode ser considerada como autorizada. A solução deve ser construída em java com Spring-boot e Angular/React conforme orientação, mas os frameworks e bibliotecas são de livre escolha (desde que não infrinja direitos de uso).
+---
 
-É importante que as pautas e os votos sejam persistidos e que não sejam perdidos com o restart da aplicação.
+## Pré-requisitos
 
-## Como proceder
+- [Docker](https://docs.docker.com/get-docker/) e Docker Compose instalados
 
-Por favor, realize o FORK desse repositório e implemente sua solução no FORK em seu repositório GItHub, ao final, notifique da conclusão para que possamos analisar o código implementado.
+---
 
-Lembre de deixar todas as orientações necessárias para executar o seu código.
+## Como executar (Docker Compose — recomendado)
 
-### Tarefas bônus
+```bash
+# Clone o repositório
+git clone https://github.com/viniiafonso/desafio-votacao-fullstack.git
+cd desafio-votacao-fullstack
 
-- Tarefa Bônus 1 - Integração com sistemas externos
-  - Criar uma Facade/Client Fake que retorna aleátoriamente se um CPF recebido é válido ou não.
-  - Caso o CPF seja inválido, a API retornará o HTTP Status 404 (Not found). Você pode usar geradores de CPF para gerar CPFs válidos
-  - Caso o CPF seja válido, a API retornará se o usuário pode (ABLE_TO_VOTE) ou não pode (UNABLE_TO_VOTE) executar a operação. Essa operação retorna resultados aleatórios, portanto um mesmo CPF pode funcionar em um teste e não funcionar no outro.
-
-```
-// CPF Ok para votar
-{
-    "status": "ABLE_TO_VOTE
-}
-// CPF Nao Ok para votar - retornar 404 no client tb
-{
-    "status": "UNABLE_TO_VOTE
-}
+# Sobe todos os serviços (banco, backend e frontend)
+docker compose up --build
 ```
 
-Exemplos de retorno do serviço
+Após subir, acesse:
 
-### Tarefa Bônus 2 - Performance
+| Serviço      | URL                                   |
+|--------------|---------------------------------------|
+| Frontend     | http://localhost:5173                 |
+| Backend API  | http://localhost:8080                 |
+| Swagger UI   | http://localhost:8080/swagger-ui.html |
+| Health check | http://localhost:8080/actuator/health |
 
-- Imagine que sua aplicação possa ser usada em cenários que existam centenas de
-  milhares de votos. Ela deve se comportar de maneira performática nesses
-  cenários
-- Testes de performance são uma boa maneira de garantir e observar como sua
-  aplicação se comporta
+Para encerrar:
 
-### Tarefa Bônus 3 - Versionamento da API
+```bash
+docker compose down          # mantém os dados do banco
+docker compose down -v       # remove também o volume do banco
+```
 
-○ Como você versionaria a API da sua aplicação? Que estratégia usar?
+---
 
-## O que será analisado
+## Como executar sem Docker
 
-- Simplicidade no design da solução (evitar over engineering)
-- Organização do código
-- Arquitetura do projeto
-- Boas práticas de programação (manutenibilidade, legibilidade etc)
-- Possíveis bugs
-- Tratamento de erros e exceções
-- Explicação breve do porquê das escolhas tomadas durante o desenvolvimento da solução
-- Uso de testes automatizados e ferramentas de qualidade
-- Limpeza do código
-- Documentação do código e da API
-- Logs da aplicação
-- Mensagens e organização dos commits
-- Testes
-- Layout responsivo
+### Backend
 
-## Dicas
+**Pré-requisitos:** Java 21+, Maven 3.9+, PostgreSQL 16.
 
-- Teste bem sua solução, evite bugs
+```bash
+# Suba o banco (se não tiver localmente)
+docker run --rm --name pg-votacao \
+  -e POSTGRES_DB=votacao \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -p 5432:5432 postgres:16-alpine
 
-  Observações importantes
-- Não inicie o teste sem sanar todas as dúvidas
-- Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
-  deixe claro caso haja instruções especiais para execução do mesmo
-  Classificação da informação: Uso Interno
+# Execute o backend
+cd backend
+mvn spring-boot:run
+```
 
+O backend sobe em `http://localhost:8080`.
 
+### Frontend
 
-# desafio-votacao
+**Pré-requisitos:** Node.js 20+.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O frontend sobe em `http://localhost:5173` e já faz proxy de `/api` para `http://localhost:8080` automaticamente em desenvolvimento.
+
+---
+
+## Funcionalidades
+
+- **Cadastrar pautas** com título e descrição
+- **Abrir sessão de votação** com duração configurável (padrão: 1 minuto)
+- **Iniciar / Pausar / Retomar / Encerrar** sessões de votação
+- **Registrar votos** (SIM ou NÃO) por CPF — um voto por associado por pauta
+- **Contagem regressiva** ao vivo do tempo restante da sessão
+- **QR code** para cooperados acessarem a página de votação pelo celular
+- **Resultado em tempo real** com gráfico de barras (oculto durante a votação)
+- **Validação de CPF** via Facade fake (ABLE_TO_VOTE / UNABLE_TO_VOTE aleatório)
+- **Documentação da API** via Swagger UI (`/swagger-ui.html`)
+
+---
+
+## Testes (Backend)
+
+```bash
+cd backend
+mvn test      # unitários + integração (Testcontainers com PostgreSQL)
+mvn verify    # gera relatório de cobertura Jacoco em target/site/jacoco/index.html
+```
+
+---
+
+## Versionamento da API
+
+A API está versionada via path (`/api/v1/...`). Essa abordagem foi escolhida por ser:
+- Explícita e fácil de consumir (browsers, curl, clientes REST)
+- Simples de rotear em gateways/proxies por prefixo de URL
+- Compatível com Spring sem configuração extra
+
+---
+
+## Estrutura do projeto
+
+```
+desafio-votacao-fullstack/
+├── backend/                        # Spring Boot API REST
+│   ├── src/
+│   │   ├── main/java/...
+│   │   │   ├── controller/         # PautaController, VotoController, CpfFakeController
+│   │   │   ├── service/            # PautaService, SessaoService, VotoService, ResultadoService
+│   │   │   ├── entity/             # Pauta, Sessao, Voto
+│   │   │   ├── dto/                # Request/Response records
+│   │   │   └── exception/          # GlobalExceptionHandler + exceções de negócio
+│   │   └── resources/
+│   │       ├── application.yml
+│   │       └── db/migration/       # Scripts Flyway (V1, V2, V3)
+│   └── Dockerfile
+├── frontend/                       # React SPA (CoopVoto)
+│   ├── src/
+│   │   ├── pages/                  # ListaPautas, CriarPauta, DetalhePauta, Votar, NotFound
+│   │   ├── components/             # Layout, StatusBadge, EmptyState, Spinner
+│   │   ├── api/                    # client.ts (fetch), pautas.ts, votos.ts
+│   │   ├── lib/                    # utils (cn, formatDateTime, maskCpf, isValidCpf)
+│   │   └── types/                  # Tipos TypeScript compartilhados
+│   ├── Dockerfile                  # Build multi-stage (Node → Nginx)
+│   └── nginx.conf                  # Serve SPA + proxy reverso para /api
+└── docker-compose.yml              # PostgreSQL + Backend + Frontend
+```

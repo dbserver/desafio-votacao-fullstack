@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { color-scheme: light; }
+  html, body, #root { height: 100%; }
+  body {
+    @apply bg-earth-50 text-coop-950 antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  *::-webkit-scrollbar { @apply w-1.5 h-1.5; }
+  *::-webkit-scrollbar-track { @apply bg-transparent; }
+  *::-webkit-scrollbar-thumb { @apply rounded-full bg-coop-200 hover:bg-coop-300; }
+}
+
+@layer components {
+
+  /* Cards */
+  .card {
+    @apply rounded-2xl bg-white shadow-sm border border-earth-200 p-6;
+  }
+  .card-hover {
+    @apply card hover:border-coop-300 hover:shadow-coop transition-all duration-200;
+  }
+
+  /* Botões */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 select-none;
+  }
+  .btn-primary {
+    @apply btn bg-coop-gradient text-white shadow-coop hover:shadow-lg hover:brightness-110 focus:ring-coop-400;
+  }
+  .btn-gold {
+    @apply btn bg-gold-gradient text-white shadow-gold hover:shadow-lg hover:brightness-110 focus:ring-gold-400;
+  }
+  .btn-secondary {
+    @apply btn bg-white text-coop-800 border border-earth-300 hover:bg-earth-50 focus:ring-coop-200;
+  }
+  .btn-ghost {
+    @apply btn bg-transparent text-coop-700 hover:bg-coop-50 hover:text-coop-900;
+  }
+  .btn-danger {
+    @apply btn bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-400;
+  }
+  .btn-success {
+    @apply btn bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-400;
+  }
+
+  /* Inputs */
+  .input {
+    @apply w-full rounded-xl border border-earth-300 bg-white px-4 py-2.5 text-sm text-coop-900 shadow-sm placeholder:text-earth-400 focus:border-coop-500 focus:outline-none focus:ring-2 focus:ring-coop-200 transition-colors;
+  }
+  .label {
+    @apply block text-sm font-semibold text-coop-800 mb-1.5;
+  }
+  .label-hint {
+    @apply text-xs text-earth-500 font-normal ml-1;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  /* Section titles */
+  .section-title {
+    @apply text-base font-bold text-coop-900 flex items-center gap-2;
+  }
+  .section-desc {
+    @apply text-sm text-earth-500 mt-0.5;
+  }
+
+  /* Stat card */
+  .stat-card {
+    @apply rounded-2xl p-5 flex flex-col gap-1;
+  }
+}
