@@ -1,86 +1,173 @@
-# Votação
+# Votacao Cooperativa
 
-## Objetivo
+Sistema web para gerenciar pautas, abrir sessoes de votacao, registrar votos e acompanhar o resultado em tempo real.
 
-No cooperativismo, cada associado possui um voto e as decisões são tomadas em assembleias, por votação. Imagine que você deve criar uma solução we para gerenciar e participar dessas sessões de votação.
-Essa solução deve ser executada na nuvem e promover as seguintes funcionalidades através de uma API REST / Front:
+## Stack
 
-- Cadastrar uma nova pauta
-- Abrir uma sessão de votação em uma pauta (a sessão de votação deve ficar aberta por
-  um tempo determinado na chamada de abertura ou 1 minuto por default)
-- Receber votos dos associados em pautas (os votos são apenas 'Sim'/'Não'. Cada associado
-  é identificado por um id único e pode votar apenas uma vez por pauta)
-- Contabilizar os votos e dar o resultado da votação na pauta
+- Backend: Java 21, Spring Boot, JPA, Flyway, WebSocket, Swagger
+- Frontend: React 18, Vite, TypeScript, Tailwind CSS, Axios, React Router
+- Banco: PostgreSQL
 
-Para fins de exercício, a segurança das interfaces pode ser abstraída e qualquer chamada para as interfaces pode ser considerada como autorizada. A solução deve ser construída em java com Spring-boot e Angular/React conforme orientação, mas os frameworks e bibliotecas são de livre escolha (desde que não infrinja direitos de uso).
+## Decisões de arquitetura
 
-É importante que as pautas e os votos sejam persistidos e que não sejam perdidos com o restart da aplicação.
+- Controllers ficam finos e delegam as regras para services, o que facilita manutenção e testes.
+- A listagem de pautas usa paginação para evitar carregar mais dados do que o necessário.
+- As criações retornam `201 Created` com `Location`, apontando para o recurso recém-criado.
+- O encerramento automático da sessão é feito no backend por scheduler, evitando depender do frontend para encerrar votação.
+- O resultado em tempo real é publicado por WebSocket, enquanto a API REST continua cuidando do estado e da persistência.
+- Os testes usam banco em memória para validar contratos e regras sem depender do PostgreSQL local.
 
-## Como proceder
+## Performance
 
-Por favor, realize o FORK desse repositório e implemente sua solução no FORK em seu repositório GItHub, ao final, notifique da conclusão para que possamos analisar o código implementado.
+- A listagem é paginada para manter o payload pequeno.
+- O resultado da votação é calculado com consultas agregadas simples no banco.
+- Foram adicionados índices leves em campos de busca frequente para ajudar na escalabilidade do fluxo de sessão e apuração.
+- O WebSocket envia atualização somente quando há mudança de voto ou encerramento de sessão, sem polling.
 
-Lembre de deixar todas as orientações necessárias para executar o seu código.
+## Versionamento da API
 
-### Tarefas bônus
+- A estratégia adotada é versionamento por URI, com o prefixo `/api/v1`.
+- Isso mantém compatibilidade entre versões e facilita evoluções futuras sem quebrar consumidores antigos.
+- Se houver uma mudança incompatível, a próxima versão pode entrar como `/api/v2` sem alterar o contrato atual.
 
-- Tarefa Bônus 1 - Integração com sistemas externos
-  - Criar uma Facade/Client Fake que retorna aleátoriamente se um CPF recebido é válido ou não.
-  - Caso o CPF seja inválido, a API retornará o HTTP Status 404 (Not found). Você pode usar geradores de CPF para gerar CPFs válidos
-  - Caso o CPF seja válido, a API retornará se o usuário pode (ABLE_TO_VOTE) ou não pode (UNABLE_TO_VOTE) executar a operação. Essa operação retorna resultados aleatórios, portanto um mesmo CPF pode funcionar em um teste e não funcionar no outro.
+## Logs e observabilidade
 
+- Cada requisição recebe ou reaproveita um `X-Request-Id`, que também volta na resposta.
+- O console inclui o `requestId` no padrão de log para facilitar a correlação entre chamadas, erros e ações do scheduler.
+- O backend registra inicio e fim das requisições, alem de excecoes inesperadas com status e contexto da operacao.
+- O nivel de log pode ser ajustado com `LOG_LEVEL_APP`.
+- Os timestamps da aplicação seguem o horário do Brasil (`America/Sao_Paulo`) para persistência e exibição.
+
+## Funcionalidades entregues
+
+- Cadastro de pauta
+- Listagem paginada de pautas em tabela
+- Detalhe da pauta com abertura de sessao
+- Votacao por `SIM` e `NAO`
+- Contagem regressiva baseada em `expiraEm`
+- Encerramento automatico da sessao quando o tempo termina
+- Resultado da votacao com atualizacao em tempo real via WebSocket
+- Tela inicial de login visual
+- Bonus de CPF com client fake e endpoint de status
+
+## Como executar localmente
+
+### 1. Banco de dados
+
+O backend usa PostgreSQL por padrao. Voce pode subir tudo com Docker Compose ou rodar o banco localmente com as mesmas credenciais.
+
+### 2. Backend
+
+```bash
+cd backend
+./mvnw spring-boot:run
 ```
-// CPF Ok para votar
-{
-    "status": "ABLE_TO_VOTE
-}
-// CPF Nao Ok para votar - retornar 404 no client tb
-{
-    "status": "UNABLE_TO_VOTE
-}
+
+Se quiser sobrescrever a conexao com o banco:
+
+```bash
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/votacao
+export SPRING_DATASOURCE_USERNAME=votacao
+export SPRING_DATASOURCE_PASSWORD=votacao
+./mvnw spring-boot:run
 ```
 
-Exemplos de retorno do serviço
+### 3. Frontend
 
-### Tarefa Bônus 2 - Performance
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-- Imagine que sua aplicação possa ser usada em cenários que existam centenas de
-  milhares de votos. Ela deve se comportar de maneira performática nesses
-  cenários
-- Testes de performance são uma boa maneira de garantir e observar como sua
-  aplicação se comporta
+Se necessario, copie `frontend/.env.example` para `frontend/.env` e ajuste as URLs da API e do WebSocket.
 
-### Tarefa Bônus 3 - Versionamento da API
+## Executar com Docker
 
-○ Como você versionaria a API da sua aplicação? Que estratégia usar?
+```bash
+docker compose up --build
+```
 
-## O que será analisado
+Servicos expostos:
 
-- Simplicidade no design da solução (evitar over engineering)
-- Organização do código
-- Arquitetura do projeto
-- Boas práticas de programação (manutenibilidade, legibilidade etc)
-- Possíveis bugs
-- Tratamento de erros e exceções
-- Explicação breve do porquê das escolhas tomadas durante o desenvolvimento da solução
-- Uso de testes automatizados e ferramentas de qualidade
-- Limpeza do código
-- Documentação do código e da API
-- Logs da aplicação
-- Mensagens e organização dos commits
-- Testes
-- Layout responsivo
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8080`
+- Swagger: `http://localhost:8080/swagger-ui.html`
 
-## Dicas
+O `docker-compose.yml` sobe:
 
-- Teste bem sua solução, evite bugs
+- PostgreSQL com volume persistente
+- Backend Spring Boot
+- Frontend compilado em Nginx
 
-  Observações importantes
-- Não inicie o teste sem sanar todas as dúvidas
-- Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
-  deixe claro caso haja instruções especiais para execução do mesmo
-  Classificação da informação: Uso Interno
+## Variaveis de ambiente
 
+### Backend
 
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+- `SPRING_JPA_HIBERNATE_DDL_AUTO`
+- `VOTACAO_SESSAO_VERIFICACAO_MS`
+- `LOG_LEVEL_APP`
 
-# desafio-votacao
+### Frontend
+
+- `VITE_API_BASE_URL`
+- `VITE_WS_URL`
+
+## Testes
+
+### Backend
+
+```bash
+cd backend
+./mvnw test
+```
+
+Os testes usam perfil `test` com banco em memoria e nao dependem do PostgreSQL local.
+
+Os testes automatizados cobrem os fluxos principais da API, incluindo:
+
+- criação e paginação de pautas;
+- abertura de sessão com duração padrão;
+- registro de voto;
+- bloqueio de voto duplicado;
+- votação quando o CPF não está autorizado;
+- distinção entre sessão inexistente e sessão encerrada;
+- encerramento automático e publicação do resultado.
+
+### Frontend
+
+```bash
+cd frontend
+npm run build
+```
+
+## API principal
+
+- `POST /api/v1/pautas`
+- `GET /api/v1/pautas`
+- `GET /api/v1/pautas/{id}`
+- `POST /api/v1/pautas/{id}/sessao`
+- `GET /api/v1/pautas/{id}/sessao`
+- `GET /api/v1/sessoes/{id}`
+- `POST /api/v1/sessoes/{sessaoId}/votos`
+- `GET /api/v1/sessoes/{sessaoId}/votos/{votoId}`
+- `GET /api/v1/sessoes/{sessaoId}/resultado`
+
+## Bonus de CPF
+
+Foi adicionado um status fake de CPF para demonstracao do bonus.
+
+- `GET /api/v1/cpfs/{cpf}`
+- Retorno valido: `{ "status": "ABLE_TO_VOTE" }`
+- Retorno invalido: `404 Not Found`
+- O resultado e aleatorio, entao o mesmo CPF pode mudar entre chamadas
+
+## Observacoes
+
+- A persistencia das pautas, sessoes e votos usa PostgreSQL.
+- O frontend consome a API por `VITE_API_BASE_URL`.
+- O resultado em tempo real usa SockJS + STOMP em `VITE_WS_URL`.
+- O login e visual, sem autenticacao real.
