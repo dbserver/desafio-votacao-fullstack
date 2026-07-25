@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.dbchal.voting.domain.Pauta;
 import com.dbchal.voting.dto.CreatePautaRequest;
 import com.dbchal.voting.dto.PautaResponse;
+import com.dbchal.voting.exception.PautaNotFoundException;
 import com.dbchal.voting.repository.PautaRepository;
 
 @Service
@@ -26,7 +27,7 @@ public class PautaService {
 
 	@Transactional(readOnly = true)
 	public PautaResponse findById(Long id) {
-		Pauta pauta = pautaRepository.findById(id).orElseThrow(() -> new RuntimeException("Pauta não encontrada"));
+		Pauta pauta = pautaRepository.findById(id).orElseThrow(() -> new PautaNotFoundException(id));
 
 		return PautaResponse.from(pauta);
 	}
