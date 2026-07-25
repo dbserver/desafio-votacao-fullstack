@@ -1,4 +1,4 @@
-package com.dbchal.voting.domain;
+package com.dbchal.voting.domain.entity;
 
 import java.time.Instant;
 

@@ -1,4 +1,4 @@
-package com.dbchal.voting.exception;
+package com.dbchal.voting.exception.pauta;
 
 public class PautaNotFoundException extends RuntimeException {
 	private static final long serialVersionUID = 1L;

@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dbchal.voting.dto.CreatePautaRequest;
-import com.dbchal.voting.dto.PautaResponse;
+import com.dbchal.voting.dto.pauta.CreatePautaRequest;
+import com.dbchal.voting.dto.pauta.PautaResponse;
 import com.dbchal.voting.service.PautaService;
 
 import jakarta.validation.Valid;

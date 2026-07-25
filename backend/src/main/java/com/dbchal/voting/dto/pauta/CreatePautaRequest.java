@@ -1,4 +1,4 @@
-package com.dbchal.voting.dto;
+package com.dbchal.voting.dto.pauta;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

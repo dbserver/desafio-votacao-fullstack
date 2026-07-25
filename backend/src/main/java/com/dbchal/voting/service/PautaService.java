@@ -5,10 +5,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.dbchal.voting.domain.Pauta;
-import com.dbchal.voting.dto.CreatePautaRequest;
-import com.dbchal.voting.dto.PautaResponse;
-import com.dbchal.voting.exception.PautaNotFoundException;
+import com.dbchal.voting.domain.entity.Pauta;
+import com.dbchal.voting.dto.pauta.CreatePautaRequest;
+import com.dbchal.voting.dto.pauta.PautaResponse;
+import com.dbchal.voting.exception.CreateEntityException;
+import com.dbchal.voting.exception.pauta.PautaNotFoundException;
 import com.dbchal.voting.repository.PautaRepository;
 
 @Service
@@ -24,9 +25,13 @@ public class PautaService {
 	public PautaResponse create(CreatePautaRequest request) {
 		Pauta novaPauta = new Pauta(request.titulo(), request.descricao());
 
-		Pauta pautaSalva = pautaRepository.save(novaPauta);
+		try {
+			Pauta pautaSalva = pautaRepository.save(novaPauta);
 
-		return PautaResponse.from(pautaSalva);
+			return PautaResponse.from(pautaSalva);
+		} catch (Exception e) {
+			throw new CreateEntityException("pauta");
+		}
 	}
 
 	@Transactional(readOnly = true)

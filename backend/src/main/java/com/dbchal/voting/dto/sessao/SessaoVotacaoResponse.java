@@ -1,8 +1,8 @@
-package com.dbchal.voting.dto;
+package com.dbchal.voting.dto.sessao;
 
 import java.time.Instant;
 
-import com.dbchal.voting.domain.SessaoVotacao;
+import com.dbchal.voting.domain.entity.SessaoVotacao;
 
 public record SessaoVotacaoResponse(
 

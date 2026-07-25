@@ -5,12 +5,13 @@ import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.dbchal.voting.domain.Pauta;
-import com.dbchal.voting.domain.SessaoVotacao;
-import com.dbchal.voting.dto.OpenSessaoVotacaoRequest;
-import com.dbchal.voting.dto.SessaoVotacaoResponse;
-import com.dbchal.voting.exception.AlreadyExistingSessionException;
-import com.dbchal.voting.exception.SessaoNotFoundException;
+import com.dbchal.voting.domain.entity.Pauta;
+import com.dbchal.voting.domain.entity.SessaoVotacao;
+import com.dbchal.voting.dto.sessao.CreateSessaoVotacaoRequest;
+import com.dbchal.voting.dto.sessao.SessaoVotacaoResponse;
+import com.dbchal.voting.exception.CreateEntityException;
+import com.dbchal.voting.exception.sessao.AlreadyExistingSessaoException;
+import com.dbchal.voting.exception.sessao.SessaoNotFoundException;
 import com.dbchal.voting.repository.SessaoVotacaoRepository;
 
 @Service
@@ -27,12 +28,12 @@ public class SessaoVotacaoService {
 	}
 
 	@Transactional
-	public SessaoVotacaoResponse openSession(Long pautaId, OpenSessaoVotacaoRequest request) {
+	public SessaoVotacaoResponse openSession(Long pautaId, CreateSessaoVotacaoRequest request) {
 
 		Pauta pauta = pautaService.findEntityById(pautaId);
 
 		if (sessaoVotacaoRepository.existsByPautaId(pautaId)) {
-			throw new AlreadyExistingSessionException(pautaId);
+			throw new AlreadyExistingSessaoException(pautaId);
 		}
 
 		long duracao = obterDuracao(request);
@@ -48,27 +49,33 @@ public class SessaoVotacaoService {
 			return SessaoVotacaoResponse.from(sessaoSalva);
 
 		} catch (Exception e) {
-			throw new AlreadyExistingSessionException(pautaId);
+			throw new CreateEntityException("sessão votação");
 		}
 
 	}
 
 	@Transactional(readOnly = true)
-	public SessaoVotacaoResponse findByPauta(Long puataId) {
-		SessaoVotacao sessao = sessaoVotacaoRepository.findByPautaId(puataId)
-				.orElseThrow(() -> new SessaoNotFoundException(puataId));
+	public SessaoVotacaoResponse findByPauta(Long pautaId) {
+		SessaoVotacao sessao = sessaoVotacaoRepository.findByPautaId(pautaId)
+				.orElseThrow(() -> new SessaoNotFoundException(pautaId));
 
 		return SessaoVotacaoResponse.from(sessao);
 	}
-	
+
+	@Transactional(readOnly = true)
+	public SessaoVotacao findEntityByPauta(Long pautaId) {
+		return sessaoVotacaoRepository.findByPautaId(pautaId).orElseThrow(() -> new SessaoNotFoundException(pautaId));
+	}
+
 	@Transactional
 	public void deleteByPauta(Long pautaId) {
-		SessaoVotacao sessao = sessaoVotacaoRepository.findByPautaId(pautaId).orElseThrow(() -> new SessaoNotFoundException(pautaId));
-		
+		SessaoVotacao sessao = sessaoVotacaoRepository.findByPautaId(pautaId)
+				.orElseThrow(() -> new SessaoNotFoundException(pautaId));
+
 		sessaoVotacaoRepository.delete(sessao);
 	}
 
-	private long obterDuracao(OpenSessaoVotacaoRequest request) {
+	private long obterDuracao(CreateSessaoVotacaoRequest request) {
 		if (request == null || request.duracao() == null) {
 			return DURACAO_PADRAO;
 		}

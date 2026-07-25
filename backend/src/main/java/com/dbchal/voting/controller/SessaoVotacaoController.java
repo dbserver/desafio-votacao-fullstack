@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dbchal.voting.dto.OpenSessaoVotacaoRequest;
-import com.dbchal.voting.dto.SessaoVotacaoResponse;
+import com.dbchal.voting.dto.sessao.CreateSessaoVotacaoRequest;
+import com.dbchal.voting.dto.sessao.SessaoVotacaoResponse;
 import com.dbchal.voting.service.SessaoVotacaoService;
 
 import jakarta.validation.Valid;
@@ -28,7 +28,7 @@ public class SessaoVotacaoController {
 	@PostMapping("/{pautaId}")
 	@ResponseStatus(HttpStatus.CREATED)
 	public SessaoVotacaoResponse openSession(@PathVariable Long pautaId,
-			@RequestBody(required = false) @Valid OpenSessaoVotacaoRequest request) {
+			@RequestBody(required = false) @Valid CreateSessaoVotacaoRequest request) {
 		return sessaoVotacaoService.openSession(pautaId, request);
 	}
 
