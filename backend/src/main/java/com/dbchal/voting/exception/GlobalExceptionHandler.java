@@ -13,7 +13,7 @@ import com.dbchal.voting.exception.pauta.PautaNotFoundException;
 import com.dbchal.voting.exception.sessao.AlreadyExistingSessaoException;
 import com.dbchal.voting.exception.sessao.ExpiredSessaoException;
 import com.dbchal.voting.exception.sessao.SessaoNotFoundException;
-import com.dbchal.voting.exception.voto.AlreadyVotedException;
+import com.dbchal.voting.exception.voto.DuplicateVoteException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiErrorResponse> trataCreateEntityException(CreateEntityException exception,
 			HttpServletRequest request) {
 
-		HttpStatus status = HttpStatus.NOT_FOUND;
+		HttpStatus status = HttpStatus.BAD_REQUEST;
 
 		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "CREATE_ENTITY_EXCEPTION",
 				exception.getMessage(), request.getRequestURI());
@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiErrorResponse> trataAlreadyExistingSessao(AlreadyExistingSessaoException exception,
 			HttpServletRequest request) {
 
-		HttpStatus status = HttpStatus.NOT_FOUND;
+		HttpStatus status = HttpStatus.CONFLICT;
 
 		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "ALREADY_EXISTING_SESSION",
 				exception.getMessage(), request.getRequestURI());
@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiErrorResponse> trataExpiredSessaoException(ExpiredSessaoException exception,
 			HttpServletRequest request) {
 
-		HttpStatus status = HttpStatus.NOT_FOUND;
+		HttpStatus status = HttpStatus.FORBIDDEN;
 
 		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "EXPIRED_SESSION",
 				exception.getMessage(), request.getRequestURI());
@@ -93,7 +93,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiErrorResponse> trataCpfCadastradoException(CpfAlreadyRegisteredException exception,
 			HttpServletRequest request) {
 
-		HttpStatus status = HttpStatus.NOT_FOUND;
+		HttpStatus status = HttpStatus.CONFLICT;
 
 		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "CPF_ALREADY_REGISTERED",
 				exception.getMessage(), request.getRequestURI());
@@ -101,13 +101,13 @@ public class GlobalExceptionHandler {
 	}
 
 	// Votos
-	@ExceptionHandler(AlreadyVotedException.class)
-	public ResponseEntity<ApiErrorResponse> trataAlreadyVotedException(AlreadyVotedException exception,
+	@ExceptionHandler(DuplicateVoteException.class)
+	public ResponseEntity<ApiErrorResponse> trataDuplicateVoteException(DuplicateVoteException exception,
 			HttpServletRequest request) {
 
-		HttpStatus status = HttpStatus.NOT_FOUND;
+		HttpStatus status = HttpStatus.CONFLICT;
 
-		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "ALREADY_VOTED",
+		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "DUPLICATED_VOTE",
 				exception.getMessage(), request.getRequestURI());
 		return ResponseEntity.status(status).body(response);
 	}

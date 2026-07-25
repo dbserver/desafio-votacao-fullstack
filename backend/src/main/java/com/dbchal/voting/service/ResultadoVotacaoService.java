@@ -52,7 +52,7 @@ public class ResultadoVotacaoService {
 		}
 
 		if (votosNao > votosSim) {
-		    return ResultadoVotacaoStatus.REJEITADA;
+		    return ResultadoVotacaoStatus.REPROVADA;
 		}
 		
 		return ResultadoVotacaoStatus.EMPATE;

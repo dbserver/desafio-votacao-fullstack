@@ -1,10 +1,10 @@
 package com.dbchal.voting.exception.voto;
 
-public class AlreadyVotedException extends RuntimeException {
+public class DuplicateVoteException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
-	public AlreadyVotedException() {
+	public DuplicateVoteException() {
 		super("Você já votou nessa pauta");
 	}
 }

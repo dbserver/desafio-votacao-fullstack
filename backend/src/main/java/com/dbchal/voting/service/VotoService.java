@@ -11,7 +11,7 @@ import com.dbchal.voting.dto.voto.CreateVotoRequest;
 import com.dbchal.voting.dto.voto.VotoResponse;
 import com.dbchal.voting.exception.CreateEntityException;
 import com.dbchal.voting.exception.sessao.ExpiredSessaoException;
-import com.dbchal.voting.exception.voto.AlreadyVotedException;
+import com.dbchal.voting.exception.voto.DuplicateVoteException;
 import com.dbchal.voting.repository.VotoRepository;
 
 @Service
@@ -39,7 +39,7 @@ public class VotoService {
 		Associado associado = associadoService.findEntityById(request.associadoId());
 
 		if (votoRepository.existsBySessaoIdAndAssociadoId(sessao.getId(), associado.getId())) {
-			throw new AlreadyVotedException();
+			throw new DuplicateVoteException();
 		}
 
 		Voto voto = new Voto(sessao, associado, request.opcao());
