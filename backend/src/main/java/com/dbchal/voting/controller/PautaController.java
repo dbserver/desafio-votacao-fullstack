@@ -23,26 +23,26 @@ public class PautaController {
 
 	private final PautaService pautaService;
 
-	protected PautaController(PautaService pautaService) {
+	public PautaController(PautaService pautaService) {
 		this.pautaService = pautaService;
-	}
-	
-	@GetMapping
-	@ResponseStatus(HttpStatus.FOUND)
-	public List<PautaResponse> listAll(){
-		return pautaService.findAll();
-	}
-	
-	@GetMapping("/{id}")
-	@ResponseStatus(HttpStatus.FOUND)
-	public PautaResponse findById(@PathVariable Long id){
-		return pautaService.findById(id);
 	}
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public PautaResponse create(@RequestBody @Valid CreatePautaRequest request) {
 		return pautaService.create(request);
+	}
+
+	@GetMapping
+	@ResponseStatus(HttpStatus.FOUND)
+	public List<PautaResponse> listAll() {
+		return pautaService.findAll();
+	}
+
+	@GetMapping("/{id}")
+	@ResponseStatus(HttpStatus.FOUND)
+	public PautaResponse findById(@PathVariable Long id) {
+		return pautaService.findById(id);
 	}
 
 }

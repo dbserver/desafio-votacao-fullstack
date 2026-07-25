@@ -13,17 +13,35 @@ import jakarta.servlet.http.HttpServletRequest;
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(PautaNotFoundException.class)
-	public ResponseEntity<ApiErrorResponse> trataPautaNotFound(PautaNotFoundException exception, HttpServletRequest request){
-		
+	public ResponseEntity<ApiErrorResponse> trataPautaNotFound(PautaNotFoundException exception,
+			HttpServletRequest request) {
+
 		HttpStatus status = HttpStatus.NOT_FOUND;
-		
-		ApiErrorResponse response = new ApiErrorResponse(
-				Instant.now(),
-				status.value(),
-				"PAUTA_NOT_FOUND",
-				exception.getMessage(),
-				request.getRequestURI()
-				);
+
+		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "PAUTA_NOT_FOUND",
+				exception.getMessage(), request.getRequestURI());
+		return ResponseEntity.status(status).body(response);
+	}
+
+	@ExceptionHandler(AlreadyExistingSessionException.class)
+	public ResponseEntity<ApiErrorResponse> trataAlreadyExistingSession(AlreadyExistingSessionException exception,
+			HttpServletRequest request) {
+
+		HttpStatus status = HttpStatus.NOT_FOUND;
+
+		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "ALREADY_EXISTING_SESSION",
+				exception.getMessage(), request.getRequestURI());
+		return ResponseEntity.status(status).body(response);
+	}
+
+	@ExceptionHandler(SessaoNotFoundException.class)
+	public ResponseEntity<ApiErrorResponse> trataAlreadyExistingSession(SessaoNotFoundException exception,
+			HttpServletRequest request) {
+
+		HttpStatus status = HttpStatus.NOT_FOUND;
+
+		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "SESSAO_NOT_FOUND",
+				exception.getMessage(), request.getRequestURI());
 		return ResponseEntity.status(status).body(response);
 	}
 }

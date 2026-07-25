@@ -16,8 +16,17 @@ public class PautaService {
 
 	private final PautaRepository pautaRepository;
 
-	protected PautaService(PautaRepository pautaRepository) {
+	public PautaService(PautaRepository pautaRepository) {
 		this.pautaRepository = pautaRepository;
+	}
+
+	@Transactional
+	public PautaResponse create(CreatePautaRequest request) {
+		Pauta novaPauta = new Pauta(request.titulo(), request.descricao());
+
+		Pauta pautaSalva = pautaRepository.save(novaPauta);
+
+		return PautaResponse.from(pautaSalva);
 	}
 
 	@Transactional(readOnly = true)
@@ -32,12 +41,8 @@ public class PautaService {
 		return PautaResponse.from(pauta);
 	}
 
-	@Transactional
-	public PautaResponse create(CreatePautaRequest request) {
-		Pauta novaPauta = new Pauta(request.titulo(), request.descricao());
-
-		Pauta pautaSalva = pautaRepository.save(novaPauta);
-
-		return PautaResponse.from(pautaSalva);
+	@Transactional(readOnly = true)
+	public Pauta findEntityById(Long id) {
+		return pautaRepository.findById(id).orElseThrow(() -> new PautaNotFoundException(id));
 	}
 }
