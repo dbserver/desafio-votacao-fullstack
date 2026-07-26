@@ -47,18 +47,16 @@ public class PautaController {
 	}
 
 	@GetMapping
-	@ResponseStatus(HttpStatus.FOUND)
 	@Operation(summary = "Listar pautas", description = "Retorna todas as pautas cadastradas")
-	@ApiResponse(responseCode = "302", description = "Pautas encontradas", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PautaResponse.class))))
+	@ApiResponse(responseCode = "200", description = "Pautas encontradas", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PautaResponse.class))))
 	public List<PautaResponse> listAll() {
 		return pautaService.findAll();
 	}
 
 	@GetMapping("/{id}")
-	@ResponseStatus(HttpStatus.FOUND)
 	@Operation(summary = "Consultar pauta", description = "Busca uma pauta pelo seu identificador")
 	@ApiResponses({
-			@ApiResponse(responseCode = "302", description = "Pauta encontrada", content = @Content(schema = @Schema(implementation = PautaResponse.class))),
+			@ApiResponse(responseCode = "200", description = "Pauta encontrada", content = @Content(schema = @Schema(implementation = PautaResponse.class))),
 			@ApiResponse(responseCode = "404", description = "Pauta não encontrada") })
 	public PautaResponse findById(
 			@Parameter(description = "Identificador da pauta", example = "1", required = true) @PathVariable Long id) {

@@ -51,10 +51,9 @@ public class SessaoVotacaoController {
 	}
 
 	@GetMapping("/{pautaId}")
-	@ResponseStatus(HttpStatus.FOUND)
 	@Operation(summary = "Consultar sessão por pauta", description = "Busca a sessão de votação vinculada à pauta")
 	@ApiResponses({
-			@ApiResponse(responseCode = "302", description = "Sessão encontrada", content = @Content(schema = @Schema(implementation = SessaoVotacaoResponse.class))),
+			@ApiResponse(responseCode = "200", description = "Sessão encontrada", content = @Content(schema = @Schema(implementation = SessaoVotacaoResponse.class))),
 			@ApiResponse(responseCode = "404", description = "Pauta ou sessão de votação não encontrada") })
 	public SessaoVotacaoResponse findByPauta(
 			@Parameter(description = "Identificador da pauta", example = "1", required = true) @PathVariable Long pautaId) {
