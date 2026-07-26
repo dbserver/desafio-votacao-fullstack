@@ -53,7 +53,7 @@ class VotoIntegrationTest {
 
 		mockMvc.perform(post("/api/v1/votos/{pautaId}", 1L).contentType(MediaType.APPLICATION_JSON).content("""
 				{
-				  "associadoId": 20,
+				  "associadoId": 1,
 				  "opcao": "SIM"
 				}
 				""")).andExpect(status().isCreated()).andExpect(jsonPath("$.id").isNumber())
