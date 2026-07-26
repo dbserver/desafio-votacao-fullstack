@@ -13,6 +13,7 @@ import {
   DescriptionRounded as DescriptionRoundedIcon,
   HowToVoteRounded as HowToVoteRoundedIcon,
   PlayArrowRounded as PlayArrowRoundedIcon,
+  TimerRounded as TimerRoundedIcon,
 } from "@mui/icons-material";
 import { useCallback, useEffect, useState } from "react";
 
@@ -22,6 +23,7 @@ import type { ResultadoVotacao } from "../../types/resultado";
 import type { SessaoVotacao } from "../../types/sessao";
 import { AbrirSessaoDialog } from "../sessoes/AbrirSessaoDialog";
 import { VotarDialog } from "../votos/VotarDialog";
+import { TempoRestante } from "../sessoes/TempoRestante";
 
 const resultadoLabels: Record<ResultadoVotacao["resultado"], string> = {
   EM_ANDAMENTO: "Em andamento",
@@ -239,21 +241,31 @@ export function PautaList({
                   justifyContent="space-between"
                   spacing={2}
                 >
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={0.75}
-                    color="text.secondary"
-                  >
-                    <AccessTimeRoundedIcon fontSize="small" />
+                  <Stack spacing={0.75} color="text.secondary">
+                    <Stack direction="row" alignItems="center" spacing={0.75}>
+                      <AccessTimeRoundedIcon fontSize="small" />
 
-                    <Typography variant="caption">
-                      Criada em{" "}
-                      {new Date(pauta.dthCriacao).toLocaleString("pt-BR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </Typography>
+                      <Typography variant="caption">
+                        Criada em{" "}
+                        {new Date(pauta.dthCriacao).toLocaleString("pt-BR", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </Typography>
+                    </Stack>
+
+                    {sessao && (
+                      <Stack direction="row" alignItems="center" spacing={0.75}>
+                        <TimerRoundedIcon fontSize="small" />
+
+                        <Typography variant="caption" fontWeight={600}>
+                          <TempoRestante dthFim={sessao.dthFim} />
+                        </Typography>
+                      </Stack>
+                    )}
                   </Stack>
 
                   <Button

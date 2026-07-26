@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import type { FormEvent } from "react";
+import { useState } from "react";
+import type { SubmitEvent } from "react";
 import {
   Button,
   CircularProgress,
@@ -31,14 +31,17 @@ export function AbrirSessaoDialog({
   const [duracao, setDuracao] = useState("");
   const [erro, setErro] = useState("");
 
-  useEffect(() => {
-    if (open) {
-      setDuracao("");
-      setErro("");
-    }
-  }, [open]);
+  function limparFormulario() {
+    setDuracao("");
+    setErro("");
+  }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleFechar() {
+    limparFormulario();
+    onClose();
+  }
+
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const valorInformado = duracao.trim();
@@ -47,7 +50,7 @@ export function AbrirSessaoDialog({
       const sucesso = await onConfirmar();
 
       if (sucesso) {
-        onClose();
+        handleFechar();
       }
 
       return;
@@ -70,16 +73,7 @@ export function AbrirSessaoDialog({
   }
 
   return (
-    <Dialog
-      open={open}
-      onClose={() => {
-        if (!abrindo) {
-          onClose();
-        }
-      }}
-      fullWidth
-      maxWidth="xs"
-    >
+    <Dialog open={open} onClose={handleFechar}>
       <DialogTitle>Abrir sessão de votação</DialogTitle>
 
       <DialogContent>
@@ -118,9 +112,7 @@ export function AbrirSessaoDialog({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button onClick={onClose} disabled={abrindo}>
-          Cancelar
-        </Button>
+        <Button onClick={handleFechar}>Cancelar</Button>
 
         <Button
           type="submit"

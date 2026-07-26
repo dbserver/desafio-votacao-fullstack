@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import type { FormEvent } from "react";
+import { useEffect, useState } from "react";
+import type { SubmitEvent } from "react";
 import axios from "axios";
 
 import {
@@ -29,6 +29,8 @@ import { registrarVoto } from "../../services/votoService";
 import type { SessaoVotacao } from "../../types/sessao";
 import { resultadoLabels, type ResultadoVotacao } from "../../types/resultado";
 import type { OpcaoVoto } from "../../types/voto";
+import { TempoRestante } from "../sessoes/TempoRestante";
+import { useNow } from "../../hooks/useNow";
 
 interface VotarDialogProps {
   open: boolean;
@@ -51,17 +53,45 @@ export function VotarDialog({
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState(false);
   const [resultado, setResultado] = useState<ResultadoVotacao | null>(null);
-  const [carregandoResultado, setCarregandoResultado] = useState(false);
-  const [agora, setAgora] = useState(Date.now());
+  const [carregandoResultado, setCarregandoResultado] = useState(true);
 
-  const atualizarResultado = useCallback(async () => {
+  const now = useNow();
+
+  useEffect(() => {
+    if (!open || pautaId === null) {
+      return;
+    }
+
+    let requisicaoAtiva = true;
+
+    buscarResultado(pautaId)
+      .then((resultadoEncontrado) => {
+        if (requisicaoAtiva) {
+          setResultado(resultadoEncontrado);
+        }
+      })
+      .catch(() => {
+        if (requisicaoAtiva) {
+          setErro("Não foi possível carregar a contagem dos votos.");
+        }
+      })
+      .finally(() => {
+        if (requisicaoAtiva) {
+          setCarregandoResultado(false);
+        }
+      });
+
+    return () => {
+      requisicaoAtiva = false;
+    };
+  }, [open, pautaId]);
+
+  async function atualizarResultadoDepoisDoVoto() {
     if (pautaId === null) {
       return;
     }
 
     try {
-      setCarregandoResultado(true);
-
       const resultadoEncontrado = await buscarResultado(pautaId);
 
       setResultado(resultadoEncontrado);
@@ -70,34 +100,28 @@ export function VotarDialog({
     } finally {
       setCarregandoResultado(false);
     }
-  }, [pautaId]);
+  }
 
-  useEffect(() => {
-    if (open) {
-      setAssociadoId("");
-      setOpcao(null);
-      setErro("");
-      setSucesso(false);
-      setResultado(null);
-      setAgora(Date.now());
+  function limparFormulario() {
+    setAssociadoId("");
+    setOpcao(null);
+    setErro("");
+    setSucesso(false);
+    setResultado(null);
+    setCarregandoResultado(true);
+  }
 
-      void atualizarResultado();
-    }
-  }, [open, atualizarResultado]);
+  function handleFechar() {
+    limparFormulario();
+    onClose();
+  }
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
+  const sessaoDentroDoPrazo =
+    sessao !== null && new Date(sessao.dthFim).getTime() > now;
 
-    const intervalId = window.setInterval(() => {
-      setAgora(Date.now());
-    }, 1000);
+  const podeVotar = resultado?.sessaoAberta === true && sessaoDentroDoPrazo;
 
-    return () => window.clearInterval(intervalId);
-  }, [open]);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!podeVotar) {
@@ -130,14 +154,14 @@ export function VotarDialog({
         opcao,
       });
 
-      await atualizarResultado();
+      await atualizarResultadoDepoisDoVoto();
 
       setSucesso(true);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.data?.error === "EXPIRED_SESSION") {
-          await atualizarResultado();
-          setAgora(Date.now());
+          await atualizarResultadoDepoisDoVoto();
+
           setErro("A sessão foi encerrada e não aceita mais votos.");
         } else {
           setErro(
@@ -153,22 +177,8 @@ export function VotarDialog({
     }
   }
 
-  const sessaoDentroDoPrazo =
-    sessao !== null && new Date(sessao.dthFim).getTime() > agora;
-
-  const podeVotar = resultado?.sessaoAberta === true && sessaoDentroDoPrazo;
-
   return (
-    <Dialog
-      open={open}
-      onClose={() => {
-        if (!enviando) {
-          onClose();
-        }
-      }}
-      fullWidth
-      maxWidth="xs"
-    >
+    <Dialog open={open} onClose={handleFechar} fullWidth maxWidth="xs">
       <DialogTitle>Sessão de votação</DialogTitle>
 
       <DialogContent>
@@ -244,7 +254,12 @@ export function VotarDialog({
                   align="center"
                   sx={{ fontWeight: "bold" }}
                 >
-                  Resultado: {resultadoLabels[resultado.resultado]}
+                  {resultado.resultado === "EM_ANDAMENTO"
+                    ? "Resultado: Em andamento"
+                    : `Resultado: ${
+                        resultadoLabels[resultado.resultado] ||
+                        resultado.resultado
+                      }`}
                 </Typography>
 
                 <Stack
@@ -258,7 +273,13 @@ export function VotarDialog({
 
                   <Chip
                     size="small"
-                    label={podeVotar ? "Sessão ativa" : "Sessão encerrada"}
+                    label={
+                      podeVotar && sessao ? (
+                        <TempoRestante dthFim={sessao.dthFim} />
+                      ) : (
+                        "Sessão encerrada"
+                      )
+                    }
                     color={podeVotar ? "success" : "default"}
                   />
                 </Stack>
@@ -325,14 +346,14 @@ export function VotarDialog({
         {sucesso || !podeVotar ? (
           <Button
             variant="contained"
-            onClick={onClose}
+            onClick={handleFechar}
             disabled={enviando || carregandoResultado}
           >
             Concluir
           </Button>
         ) : (
           <>
-            <Button onClick={onClose} disabled={enviando}>
+            <Button onClick={handleFechar} disabled={enviando}>
               Cancelar
             </Button>
 

@@ -1,5 +1,7 @@
 package com.dbchal.voting.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,8 +42,15 @@ public class AssociadoController {
 			@ApiResponse(responseCode = "201", description = "Associado cadastrado com sucesso", content = @Content(schema = @Schema(implementation = AssociadoResponse.class))),
 			@ApiResponse(responseCode = "400", description = "Dados da requisição inválidos"),
 			@ApiResponse(responseCode = "409", description = "Já existe um associado cadastrado com o CPF informado") })
-	public AssociadoResponse criar(@RequestBody @Valid CreateAssociadoRequest request) {
+	public AssociadoResponse create(@RequestBody @Valid CreateAssociadoRequest request) {
 		return associadoService.create(request);
+	}
+
+	@GetMapping
+	@Operation(summary = "Listar associados", description = "Retorna todos os associados cadastrados")
+	@ApiResponse(responseCode = "200", description = "Associados encontrados")
+	public List<AssociadoResponse> listAll() {
+		return associadoService.findAll();
 	}
 
 	@GetMapping("/{id}")
@@ -49,7 +58,7 @@ public class AssociadoController {
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "Associado encontrado", content = @Content(schema = @Schema(implementation = AssociadoResponse.class))),
 			@ApiResponse(responseCode = "404", description = "Associado não encontrado") })
-	public AssociadoResponse buscarPorId(
+	public AssociadoResponse findById(
 			@Parameter(description = "Identificador do associado", example = "1", required = true) @PathVariable Long id) {
 		return associadoService.findById(id);
 	}

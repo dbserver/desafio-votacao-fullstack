@@ -1,5 +1,8 @@
 package com.dbchal.voting.service;
 
+import java.util.List;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +39,15 @@ public class AssociadoService {
 			System.out.println(e.getMessage());
 			throw new CreateEntityException("associado");
 		}
+	}
+
+	@Transactional(readOnly = true)
+	public List<AssociadoResponse> findAll() {
+		return associadoRepository
+				.findAll(Sort.by(Sort.Direction.ASC, "id"))
+				.stream()
+				.map(AssociadoResponse::from)
+				.toList();
 	}
 
 	@Transactional(readOnly = true)

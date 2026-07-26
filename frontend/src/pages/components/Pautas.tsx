@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { PautaForm, type NovaPauta } from "../components/pautas/PautaForm";
+import { PautaForm, type NovaPauta } from "../../components/pautas/PautaForm";
 
-import type { Pauta } from "../types/pauta";
-import { criarPauta, listarPautas } from "../services/pautaService";
+import type { Pauta } from "../../types/pauta";
+import { criarPauta, listarPautas } from "../../services/pautaService";
 import { Alert, Chip, Container, Grid } from "@mui/material";
-import { SectionCard } from "../components/layout/SectionCard";
-import { PageHeader } from "../components/layout/PageHeader";
-import { PautaList } from "../components/pautas/PautaList";
+import { SectionCard } from "../../components/layout/SectionCard";
+import { PageHeader } from "../../components/layout/PageHeader";
+import { PautaList } from "../../components/pautas/PautaList";
 
-import type { SessaoVotacao } from "../types/sessao";
+import type { SessaoVotacao } from "../../types/sessao";
 import {
   abrirSessao,
   buscarSessaoPorPauta,
-} from "../services/sessaoVotacaoService";
+} from "../../services/sessaoVotacaoService";
 
 export function Pautas() {
   const [pautas, setPautas] = useState<Pauta[]>([]);
