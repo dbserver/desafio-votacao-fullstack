@@ -9,32 +9,69 @@ import { SectionCard } from "../components/layout/SectionCard";
 import { PageHeader } from "../components/layout/PageHeader";
 import { PautaList } from "../components/pautas/PautaList";
 
+import type { SessaoVotacao } from "../types/sessao";
+import {
+  abrirSessao,
+  buscarSessaoPorPauta,
+} from "../services/sessaoVotacaoService";
+
 export function Pautas() {
   const [pautas, setPautas] = useState<Pauta[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
+  const [sessoesPorPauta, setSessoesPorPauta] = useState<
+    Record<number, SessaoVotacao>
+  >({});
+  const [pautaAbrindoId, setPautaAbrindoId] = useState<number | null>(null);
+  const [sucesso, setSucesso] = useState("");
 
   useEffect(() => {
     let cancelado = false;
 
-    listarPautas()
-      .then((pautasEncontradas) => {
-        if (!cancelado) {
-          setPautas(pautasEncontradas);
-          setErro("");
+    async function carregarDados() {
+      try {
+        setCarregando(true);
+        setErro("");
+
+        const pautasEncontradas = await listarPautas();
+
+        const resultados = await Promise.all(
+          pautasEncontradas.map(async (pauta) => ({
+            pautaId: pauta.id,
+            sessao: await buscarSessaoPorPauta(pauta.id),
+          })),
+        );
+
+        if (cancelado) {
+          return;
         }
-      })
-      .catch(() => {
+
+        const sessoesEncontradas = resultados.reduce<
+          Record<number, SessaoVotacao>
+        >((mapa, resultado) => {
+          if (resultado.sessao) {
+            mapa[resultado.pautaId] = resultado.sessao;
+          }
+
+          return mapa;
+        }, {});
+
+        setPautas(pautasEncontradas);
+        setSessoesPorPauta(sessoesEncontradas);
+      } catch (error) {
         if (!cancelado) {
-          setErro("Não foi possível carregar as pautas.");
+          console.error(error);
+          setErro("Não foi possível carregar as pautas e suas sessões.");
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelado) {
           setCarregando(false);
         }
-      });
+      }
+    }
+
+    carregarDados();
 
     return () => {
       cancelado = true;
@@ -67,6 +104,43 @@ export function Pautas() {
     }
   }
 
+  async function handleAbrirSessao(
+    pautaId: number,
+    duracao?: number,
+  ): Promise<boolean> {
+    try {
+      setErro("");
+      setSucesso("");
+      setPautaAbrindoId(pautaId);
+
+      const sessao = await abrirSessao(pautaId, {
+        duracao,
+      });
+
+      setSessoesPorPauta((sessoesAtuais) => ({
+        ...sessoesAtuais,
+        [pautaId]: sessao,
+      }));
+
+      setSucesso("Sessão de votação aberta com sucesso.");
+
+      return true;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setErro(
+          error.response?.data?.message ??
+            "Não foi possível abrir a sessão de votação.",
+        );
+      } else {
+        setErro("Não foi possível abrir a sessão de votação.");
+      }
+
+      return false;
+    } finally {
+      setPautaAbrindoId(null);
+    }
+  }
+
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
       <PageHeader
@@ -86,6 +160,11 @@ export function Pautas() {
         }
       />
 
+      {sucesso && (
+        <Alert severity="success" onClose={() => setSucesso("")} sx={{ mb: 3 }}>
+          {sucesso}
+        </Alert>
+      )}
       {erro && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {erro}
@@ -106,7 +185,13 @@ export function Pautas() {
 
         <Grid item xs={12} md={8}>
           <SectionCard eyebrow="Pautas disponíveis" title="Pautas cadastradas">
-            <PautaList pautas={pautas} carregando={carregando} />
+            <PautaList
+              pautas={pautas}
+              carregando={carregando}
+              sessoesPorPauta={sessoesPorPauta}
+              pautaAbrindoId={pautaAbrindoId}
+              onAbrirSessao={handleAbrirSessao}
+            />
           </SectionCard>
         </Grid>
       </Grid>
