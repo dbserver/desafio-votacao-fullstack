@@ -12,10 +12,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.dbchal.voting.exception.associado.AssociadoNotFoundException;
 import com.dbchal.voting.exception.associado.CpfAlreadyRegisteredException;
+import com.dbchal.voting.exception.associado.InvalidCpfException;
 import com.dbchal.voting.exception.pauta.PautaNotFoundException;
 import com.dbchal.voting.exception.sessao.AlreadyExistingSessaoException;
 import com.dbchal.voting.exception.sessao.ExpiredSessaoException;
 import com.dbchal.voting.exception.sessao.SessaoNotFoundException;
+import com.dbchal.voting.exception.voto.AssociadoUnableToVoteException;
 import com.dbchal.voting.exception.voto.DuplicateVoteException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -131,6 +133,17 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(status).body(response);
 	}
 
+	@ExceptionHandler(InvalidCpfException.class)
+	public ResponseEntity<ApiErrorResponse> trataInvalidCpf(InvalidCpfException exception, HttpServletRequest request) {
+
+		HttpStatus status = HttpStatus.NOT_FOUND;
+
+		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "CPF_NOT_FOUND",
+				exception.getMessage(), request.getRequestURI());
+
+		return ResponseEntity.status(status).body(response);
+	}
+
 	// Votos
 	@ExceptionHandler(DuplicateVoteException.class)
 	public ResponseEntity<ApiErrorResponse> trataDuplicateVoteException(DuplicateVoteException exception,
@@ -140,6 +153,18 @@ public class GlobalExceptionHandler {
 
 		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "DUPLICATED_VOTE",
 				exception.getMessage(), request.getRequestURI());
+		return ResponseEntity.status(status).body(response);
+	}
+
+	@ExceptionHandler(AssociadoUnableToVoteException.class)
+	public ResponseEntity<ApiErrorResponse> trataAssociadoUnableToVote(AssociadoUnableToVoteException exception,
+			HttpServletRequest request) {
+
+		HttpStatus status = HttpStatus.FORBIDDEN;
+
+		ApiErrorResponse response = new ApiErrorResponse(Instant.now(), status.value(), "UNABLE_TO_VOTE",
+				exception.getMessage(), request.getRequestURI());
+
 		return ResponseEntity.status(status).body(response);
 	}
 }

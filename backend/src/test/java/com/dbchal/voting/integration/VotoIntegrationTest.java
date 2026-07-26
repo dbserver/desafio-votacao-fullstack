@@ -1,6 +1,8 @@
 package com.dbchal.voting.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -13,10 +15,15 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
+
+import com.dbchal.voting.domain.enums.CpfValidationStatus;
+import com.dbchal.voting.exception.associado.InvalidCpfException;
+import com.dbchal.voting.facade.CpfValidationFacade;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -36,6 +43,9 @@ class VotoIntegrationTest {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
+	
+	@MockitoBean
+	private CpfValidationFacade cpfValidationFacade;
 
 	@BeforeEach
 	void setup() {
@@ -43,6 +53,9 @@ class VotoIntegrationTest {
 				TRUNCATE TABLE votos, sessao_votacao, associados, pautas
 				RESTART IDENTITY CASCADE
 				""");
+
+		when(cpfValidationFacade.validate(anyString()))
+				.thenReturn(CpfValidationStatus.ABLE_TO_VOTE);
 	}
 
 	@Test
@@ -153,6 +166,60 @@ class VotoIntegrationTest {
 				  "associadoId": 0
 				}
 				""")).andExpect(status().isBadRequest());
+
+		assertEquals(0L, countVotes());
+	}
+	
+	@Test
+	void shouldNotRegisterVoteWhenAssociadoIsUnableToVote()
+			throws Exception {
+
+		insertPauta(1L);
+		insertOpenSession(1L, 1L);
+		insertAssociado(1L, "52998224725");
+
+		when(cpfValidationFacade.validate("52998224725"))
+				.thenReturn(CpfValidationStatus.UNABLE_TO_VOTE);
+
+		mockMvc.perform(
+				post("/api/v1/votos/{pautaId}", 1L)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "associadoId": 1,
+								  "opcao": "SIM"
+								}
+								""")).andExpect(status().isForbidden())
+									 .andExpect(jsonPath("$.status").value(403))
+									 .andExpect(jsonPath("$.erro").value("UNABLE_TO_VOTE"))
+									 .andExpect(jsonPath("$.caminho").value("/api/v1/votos/1"));
+
+		assertEquals(0L, countVotes());
+	}
+
+	@Test
+	void shouldReturnNotFoundWhenCpfIsInvalid()
+			throws Exception {
+
+		insertPauta(1L);
+		insertOpenSession(1L, 1L);
+		insertAssociado(1L, "11111111111");
+
+		when(cpfValidationFacade.validate("11111111111"))
+				.thenThrow(new InvalidCpfException());
+
+		mockMvc.perform(
+				post("/api/v1/votos/{pautaId}", 1L)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{
+								  "associadoId": 1,
+								  "opcao": "SIM"
+								}
+								""")).andExpect(status().isNotFound())
+									 .andExpect(jsonPath("$.status").value(404))
+									 .andExpect(jsonPath("$.erro").value("CPF_NOT_FOUND"))
+									 .andExpect(jsonPath("$.caminho").value("/api/v1/votos/1"));
 
 		assertEquals(0L, countVotes());
 	}
