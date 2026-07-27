@@ -1,5 +1,6 @@
 package com.dbchal.voting.facade;
 
+import java.util.Random;
 import java.util.random.RandomGenerator;
 
 import org.springframework.stereotype.Component;
@@ -13,7 +14,7 @@ public class SimulatedCpfValidationFacade implements CpfValidationFacade {
 	private final RandomGenerator randomGenerator;
 
 	public SimulatedCpfValidationFacade() {
-		this(RandomGenerator.getDefault());
+		this(new Random());
 	}
 
 	SimulatedCpfValidationFacade(RandomGenerator randomGenerator) {
