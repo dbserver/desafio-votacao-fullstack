@@ -1,22 +1,23 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { PautaForm, type NovaPauta } from "../../components/pautas/PautaForm";
-
-import type { Pauta } from "../../types/pauta";
-import { criarPauta, listarPautas } from "../../services/pautaService";
 import { Alert, Chip, Container, Grid } from "@mui/material";
-import { SectionCard } from "../../components/layout/SectionCard";
 import { PageHeader } from "../../components/layout/PageHeader";
+import { SectionCard } from "../../components/layout/SectionCard";
+import { type NovaPauta, PautaForm } from "../../components/pautas/PautaForm";
 import { PautaList } from "../../components/pautas/PautaList";
-
-import type { SessaoVotacao } from "../../types/sessao";
+import { listarPautas, criarPauta } from "../../services/pautaService";
 import {
-  abrirSessao,
   buscarSessaoPorPauta,
+  abrirSessao,
 } from "../../services/sessaoVotacaoService";
+import type { Pauta } from "../../types/pauta";
+import type { SessaoVotacao } from "../../types/sessao";
 
 export function Pautas() {
   const [pautas, setPautas] = useState<Pauta[]>([]);
+  const [pagina, setPagina] = useState(0);
+  const [tamanhoPagina, setTamanhoPagina] = useState(10);
+  const [totalPautas, setTotalPautas] = useState(0);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
@@ -25,67 +26,82 @@ export function Pautas() {
   >({});
   const [pautaAbrindoId, setPautaAbrindoId] = useState<number | null>(null);
   const [sucesso, setSucesso] = useState("");
+  const ultimaRequisicao = useRef(0);
 
-  useEffect(() => {
-    let cancelado = false;
+  const carregarDados = useCallback(
+    async (paginaDesejada: number, tamanhoDesejado: number) => {
+      const requisicaoAtual = ++ultimaRequisicao.current;
 
-    async function carregarDados() {
       try {
         setCarregando(true);
         setErro("");
 
-        const pautasEncontradas = await listarPautas();
+        const resultado = await listarPautas(paginaDesejada, tamanhoDesejado);
 
-        const resultados = await Promise.all(
-          pautasEncontradas.map(async (pauta) => ({
+        const sessoes = await Promise.all(
+          resultado.content.map(async (pauta) => ({
             pautaId: pauta.id,
             sessao: await buscarSessaoPorPauta(pauta.id),
           })),
         );
 
-        if (cancelado) {
+        if (requisicaoAtual !== ultimaRequisicao.current) {
           return;
         }
 
-        const sessoesEncontradas = resultados.reduce<
+        const sessoesEncontradas = sessoes.reduce<
           Record<number, SessaoVotacao>
-        >((mapa, resultado) => {
-          if (resultado.sessao) {
-            mapa[resultado.pautaId] = resultado.sessao;
+        >((mapa, resultadoSessao) => {
+          if (resultadoSessao.sessao) {
+            mapa[resultadoSessao.pautaId] = resultadoSessao.sessao;
           }
 
           return mapa;
         }, {});
 
-        setPautas(pautasEncontradas);
+        setPautas(resultado.content);
+        setTotalPautas(resultado.totalElements);
         setSessoesPorPauta(sessoesEncontradas);
       } catch (error) {
-        if (!cancelado) {
-          console.error(error);
+        if (requisicaoAtual !== ultimaRequisicao.current) {
+          return;
+        }
+
+        if (axios.isAxiosError(error)) {
+          setErro(
+            error.response?.data?.message ??
+              "Não foi possível carregar as pautas e suas sessões.",
+          );
+        } else {
           setErro("Não foi possível carregar as pautas e suas sessões.");
         }
       } finally {
-        if (!cancelado) {
+        if (requisicaoAtual === ultimaRequisicao.current) {
           setCarregando(false);
         }
       }
-    }
+    },
+    [],
+  );
 
-    carregarDados();
-
-    return () => {
-      cancelado = true;
-    };
-  }, []);
+  useEffect(() => {
+    void carregarDados(pagina, tamanhoPagina);
+  }, [carregarDados, pagina, tamanhoPagina]);
 
   async function cadastrarPauta(dados: NovaPauta): Promise<boolean> {
     try {
       setErro("");
+      setSucesso("");
       setSalvando(true);
 
-      const novaPauta = await criarPauta(dados);
+      await criarPauta(dados);
+      setSucesso("Pauta cadastrada com sucesso.");
 
-      setPautas((pautasAtuais) => [novaPauta, ...pautasAtuais]);
+      if (pagina === 0) {
+        await carregarDados(0, tamanhoPagina);
+      } else {
+        setPagina(0);
+      }
 
       return true;
     } catch (error) {
@@ -113,9 +129,7 @@ export function Pautas() {
       setSucesso("");
       setPautaAbrindoId(pautaId);
 
-      const sessao = await abrirSessao(pautaId, {
-        duracao,
-      });
+      const sessao = await abrirSessao(pautaId, { duracao });
 
       setSessoesPorPauta((sessoesAtuais) => ({
         ...sessoesAtuais,
@@ -151,11 +165,7 @@ export function Pautas() {
           <Chip
             color="primary"
             variant="outlined"
-            label={
-              carregando
-                ? "Carregando..."
-                : `${pautas.length} ${pautas.length === 1 ? "pauta" : "pautas"}`
-            }
+            label={`${totalPautas} ${totalPautas === 1 ? "pauta" : "pautas"}`}
           />
         }
       />
@@ -190,7 +200,15 @@ export function Pautas() {
               carregando={carregando}
               sessoesPorPauta={sessoesPorPauta}
               pautaAbrindoId={pautaAbrindoId}
+              pagina={pagina}
+              tamanhoPagina={tamanhoPagina}
+              totalElementos={totalPautas}
               onAbrirSessao={handleAbrirSessao}
+              onMudarPagina={setPagina}
+              onMudarTamanhoPagina={(novoTamanho) => {
+                setPagina(0);
+                setTamanhoPagina(novoTamanho);
+              }}
             />
           </SectionCard>
         </Grid>

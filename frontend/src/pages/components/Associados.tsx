@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { Alert, Chip, Container, Grid, Stack } from "@mui/material";
 import { GroupsRounded as GroupsRoundedIcon } from "@mui/icons-material";
@@ -7,6 +7,7 @@ import { AssociadoForm } from "../../components/associados/AssociadosForm";
 import { AssociadoList } from "../../components/associados/AssociadosList";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { SectionCard } from "../../components/layout/SectionCard";
+
 import {
   criarAssociado,
   listarAssociados,
@@ -15,28 +16,30 @@ import type { Associado } from "../../types/associado";
 
 export function Associados() {
   const [associados, setAssociados] = useState<Associado[]>([]);
+  const [pagina, setPagina] = useState(0);
+  const [tamanhoPagina, setTamanhoPagina] = useState(10);
+  const [totalAssociados, setTotalAssociados] = useState(0);
   const [salvando, setSalvando] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
-
   const [associadoCriado, setAssociadoCriado] = useState<Associado | null>(
     null,
   );
 
-  useEffect(() => {
-    let requisicaoAtiva = true;
+  const carregarAssociados = useCallback(
+    async (paginaDesejada: number, tamanhoDesejado: number) => {
+      try {
+        setCarregando(true);
+        setErro("");
 
-    listarAssociados()
-      .then((associadosEncontrados) => {
-        if (requisicaoAtiva) {
-          setAssociados(associadosEncontrados);
-        }
-      })
-      .catch((error) => {
-        if (!requisicaoAtiva) {
-          return;
-        }
+        const resultado = await listarAssociados(
+          paginaDesejada,
+          tamanhoDesejado,
+        );
 
+        setAssociados(resultado.content);
+        setTotalAssociados(resultado.totalElements);
+      } catch (error) {
         if (axios.isAxiosError(error)) {
           setErro(
             error.response?.data?.message ??
@@ -45,17 +48,16 @@ export function Associados() {
         } else {
           setErro("Não foi possível carregar os associados.");
         }
-      })
-      .finally(() => {
-        if (requisicaoAtiva) {
-          setCarregando(false);
-        }
-      });
+      } finally {
+        setCarregando(false);
+      }
+    },
+    [],
+  );
 
-    return () => {
-      requisicaoAtiva = false;
-    };
-  }, []);
+  useEffect(() => {
+    void carregarAssociados(pagina, tamanhoPagina);
+  }, [carregarAssociados, pagina, tamanhoPagina]);
 
   async function cadastrarAssociado(cpf: string): Promise<boolean> {
     try {
@@ -63,18 +65,15 @@ export function Associados() {
       setSalvando(true);
       setAssociadoCriado(null);
 
-      const novoAssociado = await criarAssociado({
-        cpf,
-      });
+      const novoAssociado = await criarAssociado({ cpf });
 
       setAssociadoCriado(novoAssociado);
 
-      setAssociados((associadosAtuais) => [
-        novoAssociado,
-        ...associadosAtuais.filter(
-          (associado) => associado.id !== novoAssociado.id,
-        ),
-      ]);
+      if (pagina === 0) {
+        await carregarAssociados(0, tamanhoPagina);
+      } else {
+        setPagina(0);
+      }
 
       return true;
     } catch (error) {
@@ -104,8 +103,8 @@ export function Associados() {
             color="primary"
             variant="outlined"
             icon={<GroupsRoundedIcon />}
-            label={`${associados.length} ${
-              associados.length === 1 ? "associado" : "associados"
+            label={`${totalAssociados} ${
+              totalAssociados === 1 ? "associado" : "associados"
             }`}
           />
         }
@@ -142,7 +141,19 @@ export function Associados() {
         </Grid>
 
         <Grid item xs={12} md={8}>
-          <AssociadoList associados={associados} carregando={carregando} />
+          <AssociadoList
+            associados={associados}
+            carregando={carregando}
+            associadoDestacadoId={associadoCriado?.id}
+            pagina={pagina}
+            tamanhoPagina={tamanhoPagina}
+            totalElementos={totalAssociados}
+            onMudarPagina={setPagina}
+            onMudarTamanhoPagina={(novoTamanho) => {
+              setPagina(0);
+              setTamanhoPagina(novoTamanho);
+            }}
+          />
         </Grid>
       </Grid>
     </Container>

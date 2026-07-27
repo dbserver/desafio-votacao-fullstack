@@ -1,5 +1,9 @@
 import { api } from "./api";
-import type { Associado, CreateAssociadoRequest } from "../types/associado";
+import type {
+  Associado,
+  CreateAssociadoRequest,
+  PageResponse,
+} from "../types/associado";
 
 export async function criarAssociado(
   request: CreateAssociadoRequest,
@@ -9,8 +13,13 @@ export async function criarAssociado(
   return response.data;
 }
 
-export async function listarAssociados(): Promise<Associado[]> {
-  const response = await api.get<Associado[]>("/associados");
+export async function listarAssociados(
+  page = 0,
+  size = 10,
+): Promise<PageResponse<Associado>> {
+  const response = await api.get<PageResponse<Associado>>("/associados", {
+    params: { page, size },
+  });
 
   return response.data;
 }

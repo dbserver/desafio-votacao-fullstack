@@ -7,6 +7,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   Typography,
 } from "@mui/material";
@@ -14,14 +15,29 @@ import { GroupsRounded as GroupsRoundedIcon } from "@mui/icons-material";
 
 import { SectionCard } from "../layout/SectionCard";
 import type { Associado } from "../../types/associado";
-import { formatarCpf } from "../../utils/cpf";
+import { formatarCpf } from "../../utils/cpf.ts";
 
 interface AssociadoListProps {
   associados: Associado[];
   carregando: boolean;
+  associadoDestacadoId?: number | null;
+  pagina: number;
+  tamanhoPagina: number;
+  totalElementos: number;
+  onMudarPagina: (pagina: number) => void;
+  onMudarTamanhoPagina: (tamanho: number) => void;
 }
 
-export function AssociadoList({ associados, carregando }: AssociadoListProps) {
+export function AssociadoList({
+  associados,
+  carregando,
+  associadoDestacadoId,
+  pagina,
+  tamanhoPagina,
+  totalElementos,
+  onMudarPagina,
+  onMudarTamanhoPagina,
+}: AssociadoListProps) {
   return (
     <SectionCard
       eyebrow="Listagem"
@@ -63,49 +79,73 @@ export function AssociadoList({ associados, carregando }: AssociadoListProps) {
           </Typography>
         </Stack>
       ) : (
-        <TableContainer sx={{ maxHeight: 480 }}>
-          <Table stickyHeader aria-label="Associados cadastrados">
-            <TableHead>
-              <TableRow>
-                <TableCell width={100}>
-                  <strong>ID</strong>
-                </TableCell>
+        <>
+          <TableContainer sx={{ maxHeight: 480 }}>
+            <Table stickyHeader aria-label="Associados cadastrados">
+              <TableHead>
+                <TableRow>
+                  <TableCell width={100}>
+                    <strong>ID</strong>
+                  </TableCell>
 
-                <TableCell>
-                  <strong>CPF</strong>
-                </TableCell>
+                  <TableCell>
+                    <strong>CPF</strong>
+                  </TableCell>
 
-                <TableCell>
-                  <strong>Data do cadastro</strong>
-                </TableCell>
-              </TableRow>
-            </TableHead>
+                  <TableCell>
+                    <strong>Data do cadastro</strong>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
 
-            <TableBody>
-              {associados.map((associado) => {
-                return (
-                  <TableRow key={associado.id} hover>
-                    <TableCell>
-                      <Chip label={associado.id} size="small" />
-                    </TableCell>
+              <TableBody>
+                {associados.map((associado) => {
+                  const estaDestacado = associado.id === associadoDestacadoId;
 
-                    <TableCell>{formatarCpf(associado.cpf)}</TableCell>
+                  return (
+                    <TableRow
+                      key={associado.id}
+                      hover
+                      sx={{
+                        bgcolor: estaDestacado ? "success.light" : undefined,
+                      }}
+                    >
+                      <TableCell>
+                        <Chip
+                          label={associado.id}
+                          size="small"
+                          color={estaDestacado ? "success" : "default"}
+                        />
+                      </TableCell>
 
-                    <TableCell>
-                      {new Date(associado.dthCriacao).toLocaleString("pt-BR", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                      <TableCell>{formatarCpf(associado.cpf)}</TableCell>
+
+                      <TableCell>
+                        {new Date(associado.dthCriacao).toLocaleString("pt-BR")}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          <TablePagination
+            component="div"
+            count={totalElementos}
+            page={pagina}
+            rowsPerPage={tamanhoPagina}
+            rowsPerPageOptions={[10, 25, 50]}
+            onPageChange={(_, novaPagina) => onMudarPagina(novaPagina)}
+            onRowsPerPageChange={(event) =>
+              onMudarTamanhoPagina(Number(event.target.value))
+            }
+            labelRowsPerPage="Itens por página:"
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}–${to} de ${count}`
+            }
+          />
+        </>
       )}
     </SectionCard>
   );

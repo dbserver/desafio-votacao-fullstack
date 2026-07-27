@@ -6,14 +6,15 @@ import {
   CircularProgress,
   Divider,
   Stack,
+  TablePagination,
   Typography,
 } from "@mui/material";
 import {
+  TimerRounded as TimerRoundedIcon,
   AccessTimeRounded as AccessTimeRoundedIcon,
   DescriptionRounded as DescriptionRoundedIcon,
   HowToVoteRounded as HowToVoteRoundedIcon,
   PlayArrowRounded as PlayArrowRoundedIcon,
-  TimerRounded as TimerRoundedIcon,
 } from "@mui/icons-material";
 import { useCallback, useEffect, useState } from "react";
 
@@ -55,7 +56,12 @@ interface PautaListProps {
   carregando: boolean;
   sessoesPorPauta: Record<number, SessaoVotacao>;
   pautaAbrindoId: number | null;
+  pagina: number;
+  tamanhoPagina: number;
+  totalElementos: number;
   onAbrirSessao: (pautaId: number, duracao?: number) => Promise<boolean>;
+  onMudarPagina: (pagina: number) => void;
+  onMudarTamanhoPagina: (tamanho: number) => void;
 }
 
 export function PautaList({
@@ -63,7 +69,12 @@ export function PautaList({
   carregando,
   sessoesPorPauta,
   pautaAbrindoId,
+  pagina,
+  tamanhoPagina,
+  totalElementos,
   onAbrirSessao,
+  onMudarPagina,
+  onMudarTamanhoPagina,
 }: PautaListProps) {
   const [pautaSelecionada, setPautaSelecionada] = useState<Pauta | null>(null);
   const [pautaParaVotar, setPautaParaVotar] = useState<Pauta | null>(null);
@@ -88,6 +99,8 @@ export function PautaList({
   }, []);
 
   useEffect(() => {
+    setResultadosPorPauta({});
+
     const pautasComSessao = pautas.filter(
       (pauta) => sessoesPorPauta[pauta.id] !== undefined,
     );
@@ -294,11 +307,7 @@ export function PautaList({
                       setPautaSelecionada(pauta);
                     }}
                   >
-                    {sessaoAtiva
-                      ? "Ver sessão"
-                      : sessaoExpirada
-                        ? "Ver sessão"
-                        : "Abrir sessão"}
+                    {sessao ? "Ver sessão" : "Abrir sessão"}
                   </Button>
                 </Stack>
               </CardContent>
@@ -306,6 +315,24 @@ export function PautaList({
           );
         })}
       </Stack>
+
+      <TablePagination
+        component="div"
+        count={totalElementos}
+        page={pagina}
+        rowsPerPage={tamanhoPagina}
+        rowsPerPageOptions={[10, 25, 50]}
+        onPageChange={(_, novaPagina) => onMudarPagina(novaPagina)}
+        onRowsPerPageChange={(event) =>
+          onMudarTamanhoPagina(Number(event.target.value))
+        }
+        labelRowsPerPage="Itens por página:"
+        labelDisplayedRows={({ from, to, count }) =>
+          `${from}–${to} de ${count}`
+        }
+        sx={{ mt: 1 }}
+      />
+
       <AbrirSessaoDialog
         open={pautaSelecionada !== null}
         pautaTitulo={pautaSelecionada?.titulo ?? ""}
@@ -319,6 +346,7 @@ export function PautaList({
           return onAbrirSessao(pautaSelecionada.id, duracao);
         }}
       />
+
       <VotarDialog
         open={pautaParaVotar !== null}
         pautaId={pautaParaVotar?.id ?? null}

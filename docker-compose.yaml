@@ -35,7 +35,7 @@ services:
       context: ./frontend
     container_name: voting_frontend
     ports:
-      - "5173:80"
+      - "9090:80"
     depends_on:
       - backend
 
