@@ -1,86 +1,324 @@
-# Votação
+# Sistema de Votação Cooperativa
 
-## Objetivo
+Aplicação full stack desenvolvida para gerenciar pautas e sessões de votação de
+uma cooperativa. O sistema permite cadastrar associados e pautas, abrir uma
+sessão por tempo determinado, registrar votos `SIM` ou `NAO` e consultar o
+resultado da votação.
 
-No cooperativismo, cada associado possui um voto e as decisões são tomadas em assembleias, por votação. Imagine que você deve criar uma solução we para gerenciar e participar dessas sessões de votação.
-Essa solução deve ser executada na nuvem e promover as seguintes funcionalidades através de uma API REST / Front:
+## Funcionalidades
 
-- Cadastrar uma nova pauta
-- Abrir uma sessão de votação em uma pauta (a sessão de votação deve ficar aberta por
-  um tempo determinado na chamada de abertura ou 1 minuto por default)
-- Receber votos dos associados em pautas (os votos são apenas 'Sim'/'Não'. Cada associado
-  é identificado por um id único e pode votar apenas uma vez por pauta)
-- Contabilizar os votos e dar o resultado da votação na pauta
+- cadastro e consulta de pautas;
+- abertura de uma sessão de votação, com duração informada ou padrão de
+  1 minuto;
+- cadastro e consulta paginada de associados;
+- validação estrutural do CPF e simulação da autorização do associado para
+  votar;
+- registro de votos `SIM` ou `NAO`;
+- bloqueio de mais de um voto do mesmo associado na mesma sessão;
+- encerramento automático da sessão ao atingir o horário final;
+- consulta da quantidade de votos e do resultado da pauta;
+- interface web responsiva para executar todo o fluxo;
+- documentação interativa da API com Swagger;
+- migrations do banco de dados com Flyway;
+- testes automatizados e testes de performance com k6.
 
-Para fins de exercício, a segurança das interfaces pode ser abstraída e qualquer chamada para as interfaces pode ser considerada como autorizada. A solução deve ser construída em java com Spring-boot e Angular/React conforme orientação, mas os frameworks e bibliotecas são de livre escolha (desde que não infrinja direitos de uso).
+## Tecnologias
 
-É importante que as pautas e os votos sejam persistidos e que não sejam perdidos com o restart da aplicação.
+| Área           | Tecnologias                                                                 |
+| -------------- | --------------------------------------------------------------------------- |
+| Backend        | Java 21, Spring Boot 4.1, Spring Web MVC, Spring Data JPA e Bean Validation |
+| Banco de dados | PostgreSQL 16 e Flyway                                                      |
+| Frontend       | React 19, TypeScript, Vite e Material UI                                    |
+| Testes         | JUnit 5, MockMvc e Testcontainers                                           |
+| Performance    | k6                                                                          |
+| Infraestrutura | Docker, Docker Compose e Nginx                                              |
+| Documentação   | OpenAPI e Swagger UI                                                        |
 
-## Como proceder
+## Estrutura do projeto
 
-Por favor, realize o FORK desse repositório e implemente sua solução no FORK em seu repositório GItHub, ao final, notifique da conclusão para que possamos analisar o código implementado.
-
-Lembre de deixar todas as orientações necessárias para executar o seu código.
-
-### Tarefas bônus
-
-- Tarefa Bônus 1 - Integração com sistemas externos
-  - Criar uma Facade/Client Fake que retorna aleátoriamente se um CPF recebido é válido ou não.
-  - Caso o CPF seja inválido, a API retornará o HTTP Status 404 (Not found). Você pode usar geradores de CPF para gerar CPFs válidos
-  - Caso o CPF seja válido, a API retornará se o usuário pode (ABLE_TO_VOTE) ou não pode (UNABLE_TO_VOTE) executar a operação. Essa operação retorna resultados aleatórios, portanto um mesmo CPF pode funcionar em um teste e não funcionar no outro.
-
+```text
+.
+├── backend/       API REST, regras de negócio, migrations e testes
+├── frontend/      aplicação React
+├── performance/   massa, scripts e resultados dos testes com k6
+└── docker-compose.yaml
 ```
-// CPF Ok para votar
+
+## Arquitetura
+
+A solução utiliza uma arquitetura cliente-servidor. O backend é um monólito
+modular organizado em camadas, enquanto o frontend é uma aplicação React
+independente que consome a API REST por HTTP/JSON.
+
+```mermaid
+flowchart TD
+    U["Usuário no navegador"] --> F["Frontend React + TypeScript"]
+    F -->|HTTP/JSON em /api/v1| N["Nginx"]
+    N --> C["Controllers REST - Spring Boot"]
+    C --> S["Services - regras de negócio e transações"]
+    S --> R["Repositories - Spring Data JPA"]
+    R --> DB[("PostgreSQL")]
+    S --> V["Facade de validação de CPF"]
+    M["Flyway"] -->|Migrations| DB
+```
+
+No ambiente Docker, o Nginx serve os arquivos estáticos gerados pelo Vite e
+encaminha as requisições iniciadas em `/api/` para o container do backend. O
+Spring Boot processa a requisição, aplica as regras de negócio e acessa o
+PostgreSQL por meio do Spring Data JPA. O Docker Compose cria a rede interna,
+inicia os três serviços e aguarda o banco ficar saudável antes de iniciar a
+API.
+
+### Camadas do backend
+
+| Camada         | Responsabilidade                                                             |
+| -------------- | ---------------------------------------------------------------------------- |
+| `controller`   | Expõe os endpoints REST, valida os dados de entrada e define os códigos HTTP |
+| `dto`          | Define os contratos de entrada e saída sem expor as entidades JPA            |
+| `service`      | Concentra regras de negócio, casos de uso e limites transacionais            |
+| `facade`       | Isola a integração simulada que determina se o CPF está apto a votar         |
+| `repository`   | Executa o acesso ao PostgreSQL com Spring Data JPA e consultas agregadas     |
+| `domain`       | Representa as entidades e os enums do domínio de votação                     |
+| `exception`    | Centraliza as exceções da aplicação e padroniza as respostas de erro         |
+| `db/migration` | Versiona a estrutura, as restrições e os índices do banco com Flyway         |
+
+O fluxo de uma requisição segue, em geral:
+
+1. o frontend chama um endpoint em `/api/v1`;
+2. o controller valida a requisição e delega o caso de uso;
+3. o service aplica as regras de negócio dentro de uma transação;
+4. o repository consulta ou persiste os dados;
+5. o resultado é convertido em DTO e devolvido ao frontend;
+6. quando uma regra falha, o `GlobalExceptionHandler` transforma a exceção em
+   uma resposta HTTP padronizada.
+
+### Organização do frontend
+
+O frontend também separa responsabilidades: `pages` organiza as telas,
+`components` concentra os componentes visuais, `services` encapsula as chamadas
+HTTP com Axios, `types` define os contratos TypeScript e `utils` reúne
+validações auxiliares. Essa separação evita que componentes de interface
+conheçam detalhes de comunicação com a API.
+
+## Como executar
+
+### Pré-requisitos
+
+- Docker Desktop;
+- Docker Compose.
+
+Não é necessário instalar Java, Maven, Node.js ou PostgreSQL para executar a
+aplicação completa pelo Docker.
+
+### Subindo a aplicação
+
+Na raiz do projeto, execute:
+
+```bash
+docker compose up --build
+```
+
+Após a inicialização, os serviços estarão disponíveis em:
+
+| Serviço               | Endereço                                      |
+| --------------------- | --------------------------------------------- |
+| Aplicação web         | <http://localhost:5173>                       |
+| Swagger UI            | <http://localhost:8080/swagger-ui/index.html> |
+| Especificação OpenAPI | <http://localhost:8080/v3/api-docs>           |
+| API REST              | <http://localhost:8080/api/v1>                |
+| PostgreSQL            | `localhost:5433`                              |
+
+Para conferir o estado dos containers:
+
+```bash
+docker compose ps
+```
+
+Os containers `voting_pg`, `voting_backend` e `voting_frontend` devem aparecer
+como ativos. O banco também deve apresentar o estado `healthy`.
+
+Para encerrar a aplicação sem apagar os dados:
+
+```bash
+docker compose down
+```
+
+O PostgreSQL utiliza o volume `postgres-data`, portanto os dados permanecem
+disponíveis entre as execuções. Para remover também o banco e recriar o ambiente
+do zero, use:
+
+```bash
+docker compose down -v
+```
+
+> Atenção: a opção `-v` apaga todos os dados armazenados no volume.
+
+## Fluxo de uso
+
+Pela aplicação web:
+
+1. acesse a área **Associados** e cadastre um CPF válido;
+2. acesse **Pautas** e cadastre o assunto que será votado;
+3. abra uma sessão para a pauta, informando a duração desejada;
+4. enquanto a sessão estiver aberta, selecione um associado e registre o voto;
+5. acompanhe a contagem e o resultado na própria pauta.
+
+A integração de validação do CPF é simulada, conforme a proposta do desafio.
+Depois da validação dos dígitos, o serviço retorna aleatoriamente se o associado
+está apto ou não a votar.
+
+## Endpoints principais
+
+Todos os endpoints estão versionados com o prefixo `/api/v1`.
+
+| Método   | Endpoint                     | Descrição                          |
+| -------- | ---------------------------- | ---------------------------------- |
+| `POST`   | `/associados`                | Cadastra um associado              |
+| `GET`    | `/associados?page=0&size=10` | Lista associados de forma paginada |
+| `GET`    | `/associados/{id}`           | Consulta um associado              |
+| `POST`   | `/pautas`                    | Cadastra uma pauta                 |
+| `GET`    | `/pautas?page=0&size=10`     | Lista as pautas de forma paginada  |
+| `GET`    | `/pautas/{id}`               | Consulta uma pauta                 |
+| `POST`   | `/sessoes/{pautaId}`         | Abre a sessão de uma pauta         |
+| `GET`    | `/sessoes/{pautaId}`         | Consulta a sessão da pauta         |
+| `DELETE` | `/sessoes/{pautaId}`         | Exclui a sessão da pauta           |
+| `POST`   | `/votos/{pautaId}`           | Registra um voto                   |
+| `GET`    | `/resultados/{pautaId}`      | Consulta o resultado da votação    |
+
+Os contratos completos, exemplos de requisição e possíveis códigos HTTP podem
+ser consultados no Swagger UI.
+
+### Exemplo do fluxo pela API
+
+Cadastrar um associado:
+
+```http
+POST /api/v1/associados
+Content-Type: application/json
+
 {
-    "status": "ABLE_TO_VOTE
-}
-// CPF Nao Ok para votar - retornar 404 no client tb
-{
-    "status": "UNABLE_TO_VOTE
+  "cpf": "52998224725"
 }
 ```
 
-Exemplos de retorno do serviço
+Cadastrar uma pauta:
 
-### Tarefa Bônus 2 - Performance
+```http
+POST /api/v1/pautas
+Content-Type: application/json
 
-- Imagine que sua aplicação possa ser usada em cenários que existam centenas de
-  milhares de votos. Ela deve se comportar de maneira performática nesses
-  cenários
-- Testes de performance são uma boa maneira de garantir e observar como sua
-  aplicação se comporta
+{
+  "titulo": "Aprovação do orçamento anual",
+  "descricao": "Votação do orçamento da cooperativa para o próximo ano"
+}
+```
 
-### Tarefa Bônus 3 - Versionamento da API
+Abrir uma sessão usando a duração padrão:
 
-○ Como você versionaria a API da sua aplicação? Que estratégia usar?
+```http
+POST /api/v1/sessoes/1
+```
 
-## O que será analisado
+Registrar um voto:
 
-- Simplicidade no design da solução (evitar over engineering)
-- Organização do código
-- Arquitetura do projeto
-- Boas práticas de programação (manutenibilidade, legibilidade etc)
-- Possíveis bugs
-- Tratamento de erros e exceções
-- Explicação breve do porquê das escolhas tomadas durante o desenvolvimento da solução
-- Uso de testes automatizados e ferramentas de qualidade
-- Limpeza do código
-- Documentação do código e da API
-- Logs da aplicação
-- Mensagens e organização dos commits
-- Testes
-- Layout responsivo
+```http
+POST /api/v1/votos/1
+Content-Type: application/json
 
-## Dicas
+{
+  "associadoId": 1,
+  "opcao": "SIM"
+}
+```
 
-- Teste bem sua solução, evite bugs
+Consultar o resultado:
 
-  Observações importantes
-- Não inicie o teste sem sanar todas as dúvidas
-- Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
-  deixe claro caso haja instruções especiais para execução do mesmo
-  Classificação da informação: Uso Interno
+```http
+GET /api/v1/resultados/1
+```
 
+## Regras de negócio
 
+- cada pauta pode possuir apenas uma sessão de votação;
+- quando a duração não é informada, a sessão permanece aberta por 1 minuto;
+- somente sessões abertas aceitam votos;
+- cada associado pode votar apenas uma vez por sessão;
+- o CPF deve possuir 11 dígitos e passar pela validação dos dígitos
+  verificadores;
+- a autorização para votar é simulada e pode retornar `ABLE_TO_VOTE` ou
+  `UNABLE_TO_VOTE`;
+- o resultado pode ser `EM_ANDAMENTO`, `APROVADA`, `REPROVADA`, `EMPATE` ou
+  `SEM_VOTOS`.
 
-# desafio-votacao
+A unicidade do voto é protegida também no PostgreSQL pela restrição
+`(sessao_id, associado_id)`. Dessa forma, a regra continua válida mesmo com
+requisições concorrentes.
+
+## Testes automatizados
+
+Os testes do backend incluem regras de serviço, controllers, validação simulada
+de CPF e integrações com PostgreSQL real por meio de Testcontainers.
+
+Para executá-los localmente, mantenha o Docker ativo e use:
+
+```bash
+cd backend
+mvn test
+```
+
+Para validar o frontend:
+
+```bash
+cd frontend
+npm ci
+npm run build
+npm run lint
+```
+
+## Performance
+
+Foi avaliada a consulta:
+
+```http
+GET /api/v1/resultados/{pautaId}
+```
+
+O cenário utiliza uma sessão com **5 milhões de votos**, aquecimento de
+30 segundos, 10 usuários virtuais, carga de 10 minutos e três execuções por
+configuração. Os números abaixo representam a mediana das três execuções.
+
+| Métrica     | Sem índice | Com índice |       Melhora |
+| ----------- | ---------: | ---------: | ------------: |
+| Média       |   3.136 ms |   1.528 ms |   51,3% menor |
+| p50         |   3.038 ms |   1.243 ms |   59,1% menor |
+| p95         |   4.957 ms |   2.779 ms |   43,9% menor |
+| p99         |   5.824 ms |   3.167 ms |   45,6% menor |
+| Throughput  | 3,01 req/s | 6,18 req/s |  105,3% maior |
+| Falhas HTTP |         0% |         0% | sem regressão |
+
+O índice composto utilizado foi:
+
+```sql
+CREATE INDEX idx_votos_sessao_opcao
+    ON votos (sessao_id, opcao);
+```
+
+Com ele, a latência média caiu aproximadamente pela metade e o throughput mais
+que dobrou, mantendo 0% de falhas HTTP. A massa, os scripts, os resultados
+brutos e o procedimento de reprodução estão em
+[`performance/`](performance/README.md).
+
+## Decisões técnicas
+
+- **Flyway:** mantém o esquema versionado e reproduzível.
+- **Restrição de unicidade no banco:** protege contra votos duplicados inclusive
+  em cenários concorrentes.
+- **Consulta agregada:** contabiliza `SIM` e `NAO` diretamente no PostgreSQL,
+  sem carregar os votos em memória.
+- **Índice composto:** atende o filtro e o agrupamento usados na consulta do
+  resultado.
+- **DTOs e validação:** evitam expor entidades JPA e rejeitam requisições
+  inválidas antes da regra de negócio.
+- **Tratamento global de erros:** padroniza as respostas HTTP da API.
+- **API versionada:** concentra as rotas sob `/api/v1`.
+- **Docker Compose:** inicia banco, backend e frontend com um único comando.
