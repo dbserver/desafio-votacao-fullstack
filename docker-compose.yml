@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+
+  mysql:
+    image: mysql
+    environment:
+      - MYSQL_DATABASE=votingdb
+      - MYSQL_ROOT_USERNAME=root
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+    ports:
+      - "3306:3306"
+    networks:
+      - voting_network
+
+networks:
+  voting_network:
