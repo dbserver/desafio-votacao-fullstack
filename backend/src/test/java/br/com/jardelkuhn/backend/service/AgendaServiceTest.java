@@ -1,18 +1,22 @@
 package br.com.jardelkuhn.backend.service;
 
-import br.com.jardelkuhn.backend.dto.CreateAgendaDTO;
+import br.com.jardelkuhn.backend.dto.*;
 import br.com.jardelkuhn.backend.entity.Agenda;
 import br.com.jardelkuhn.backend.repository.AgendaRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,5 +74,83 @@ public class AgendaServiceTest {
         assertNull(result.getLimitDate());
 
         verify(agendaRepository, times(1)).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw EntityNotFoundException when agenda does not exist")
+    void shouldThrowEntityNotFoundException() {
+        Long agendaId = 1L;
+
+        when(agendaRepository.findById(agendaId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> agendaService.openSession(agendaId, new OpenSessionDTO(2L))
+        );
+
+        assertEquals("Agenda with id 1 not found", exception.getMessage());
+
+        verify(agendaRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw AgendaAlreadyOpenedException")
+    void shouldThrowAgendaAlreadyOpenedException() {
+        Long agendaId = 1L;
+
+        Agenda agenda = new Agenda();
+        agenda.setId(agendaId);
+        agenda.setOpenedDate(LocalDateTime.now());
+
+        when(agendaRepository.findById(agendaId))
+                .thenReturn(Optional.of(agenda));
+
+        assertThrows(AgendaAlreadyOpenedException.class,
+                () -> agendaService.openSession(agendaId, new OpenSessionDTO(2L))
+        );
+
+        verify(agendaRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw AgendaDurationInvalidException")
+    void shouldThrowAgendaDurationInvalidException() {
+        Long agendaId = 1L;
+
+        Agenda agenda = new Agenda();
+        agenda.setId(agendaId);
+
+        when(agendaRepository.findById(agendaId))
+                .thenReturn(Optional.of(agenda));
+
+        assertThrows(AgendaDurationInvalidException.class,
+                () -> agendaService.openSession(agendaId, new OpenSessionDTO(0L))
+        );
+
+        verify(agendaRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should open an agenda session correctly")
+    public void shouldOpenSessionCorrectly() {
+        Long agendaId = 1L;
+
+        Agenda agenda = new Agenda();
+        agenda.setId(agendaId);
+
+        when(agendaRepository.findById(agendaId)).thenReturn(Optional.of(agenda));
+
+        agendaService.openSession(agendaId, new OpenSessionDTO(30L));
+
+        ArgumentCaptor<Agenda> captor = ArgumentCaptor.forClass(Agenda.class);
+
+        verify(agendaRepository).save(captor.capture());
+        verify(agendaRepository, times(1)).save(agenda);
+
+        Agenda savedAgenda = captor.getValue();
+
+        assertNotNull(savedAgenda.getLimitDate());
+        assertNotNull(savedAgenda.getOpenedDate());
+        assertEquals(savedAgenda.getId(), agenda.getId());
+        assertEquals(savedAgenda.getOpenedDate().plusMinutes(30), savedAgenda.getLimitDate());
     }
 }

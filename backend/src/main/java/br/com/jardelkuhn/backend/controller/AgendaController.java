@@ -7,6 +7,7 @@ import br.com.jardelkuhn.backend.entity.Agenda;
 import br.com.jardelkuhn.backend.service.AgendaService;
 
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -42,16 +43,9 @@ public class AgendaController implements IAgendaResource {
     public ResponseEntity<SessionDTO> openSession(
             @PathVariable Long agendaId,
             @Valid @RequestBody OpenSessionDTO openSessionDTO) {
-
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{agendaId}/open")
-                .buildAndExpand(agendaId)
-                .toUri();
-
         SessionDTO sessionDTO = agendaService.openSession(agendaId, openSessionDTO);
 
-        return ResponseEntity.created(location).body(sessionDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(sessionDTO);
     }
 
     @GetMapping

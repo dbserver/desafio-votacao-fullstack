@@ -1,6 +1,7 @@
 package br.com.jardelkuhn.backend.global;
 
 import br.com.jardelkuhn.backend.dto.AgendaAlreadyOpenedException;
+import br.com.jardelkuhn.backend.dto.AgendaSessionRuleException;
 import br.com.jardelkuhn.backend.global.dto.ServerErrorDTO;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<?> threat404(EntityNotFoundException notFoundException) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFoundException.getMessage());
+    }
+
+    @ExceptionHandler(AgendaSessionRuleException.class)
+    public ResponseEntity<Map<String, String>> handleBusinessRuleException(
+            AgendaSessionRuleException ex) {
+
+        Map<String, String> error = Map.of(
+                "message", ex.getMessage()
+        );
+
+        // conflito, a requisição provavelmente não deveria ter acontecido
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

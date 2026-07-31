@@ -1,14 +1,10 @@
 package br.com.jardelkuhn.backend.service;
 
-import br.com.jardelkuhn.backend.dto.AgendaAlreadyOpenedException;
-import br.com.jardelkuhn.backend.dto.CreateAgendaDTO;
-import br.com.jardelkuhn.backend.dto.OpenSessionDTO;
-import br.com.jardelkuhn.backend.dto.SessionDTO;
+import br.com.jardelkuhn.backend.dto.*;
 import br.com.jardelkuhn.backend.entity.Agenda;
 import br.com.jardelkuhn.backend.repository.AgendaRepository;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,7 +19,7 @@ public class AgendaService {
     }
 
     public List<Agenda> listAllAgendas() {
-        return agendaRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        return agendaRepository.findAll();
     }
 
     public Agenda createAgenda(CreateAgendaDTO createAgendaDTO) {
@@ -36,4 +32,28 @@ public class AgendaService {
         return agendaRepository.save(agenda);
     }
 
+    public SessionDTO openSession(Long id, OpenSessionDTO openSessionDTO) {
+        Agenda agenda = agendaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
+                "Agenda with id " + id + " not found"));
+
+        if (agenda.getOpenedDate() != null) {
+            throw new AgendaAlreadyOpenedException();
+        }
+
+        if (openSessionDTO.duration() < 1){
+            throw new AgendaDurationInvalidException();
+        }
+
+        LocalDateTime openedDate = LocalDateTime.now();
+        Long duration = openSessionDTO.duration();
+
+        LocalDateTime sessionLimitDate = openedDate.plusMinutes(duration);
+
+        agenda.setOpenedDate(openedDate);
+        agenda.setLimitDate(sessionLimitDate);
+
+        agendaRepository.save(agenda);
+
+        return new SessionDTO(agenda.getLimitDate());
+    }
 }

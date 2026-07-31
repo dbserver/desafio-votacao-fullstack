@@ -1,6 +1,8 @@
 package br.com.jardelkuhn.backend.controller;
 
 import br.com.jardelkuhn.backend.dto.CreateAgendaDTO;
+import br.com.jardelkuhn.backend.dto.OpenSessionDTO;
+import br.com.jardelkuhn.backend.dto.SessionDTO;
 import br.com.jardelkuhn.backend.entity.Agenda;
 import br.com.jardelkuhn.backend.service.AgendaService;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +15,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -105,7 +111,6 @@ public class AgendaControllerTest {
                 .andExpect(jsonPath("$[3].limitDate").value(dateTime.toString()));
     }
 
-
     @Test
     @DisplayName("should not create an agenda with invalid properties")
     public void shouldNotCreateGame() throws Exception {
@@ -144,5 +149,36 @@ public class AgendaControllerTest {
                         .content(objectMapper.writeValueAsString(nullDescriptionDTO)))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(jsonPath("$.description").value("A descrição não pode ser nula"));
+    }
+
+    @Test
+    @DisplayName("Should open an agenda session")
+    void shouldOpenAgendaSession() throws Exception {
+        Long agendaId = 1L;
+
+        OpenSessionDTO openSessionDTO = new OpenSessionDTO(30L);
+
+        SessionDTO response = new SessionDTO(LocalDateTime.of(2026, 7, 30, 20, 0));
+
+        when(agendaService.openSession(eq(agendaId), any(OpenSessionDTO.class))).thenReturn(response);
+
+        mockMvc.perform(post("/api/agendas/{agendaId}/open", agendaId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(openSessionDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.limitDate").exists());
+
+        verify(agendaService).openSession(eq(agendaId), any(OpenSessionDTO.class));
+    }
+
+    @Test
+    @DisplayName("Should return bad request when duration is null")
+    void shouldNotOpenSessionWithoutDuration() throws Exception {
+        OpenSessionDTO openSessionDTO = new OpenSessionDTO(0L);
+
+        mockMvc.perform(post("/api/agendas/{agendaId}/open", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(openSessionDTO)))
+                .andExpect(status().isBadRequest());
     }
 }
