@@ -87,7 +87,7 @@ public class AgendaServiceTest {
                 () -> agendaService.openSession(agendaId, new OpenSessionDTO(2L))
         );
 
-        assertEquals("Agenda with id 1 not found", exception.getMessage());
+        assertEquals("Agenda com id 1 não encontrada", exception.getMessage());
 
         verify(agendaRepository, never()).save(any());
     }

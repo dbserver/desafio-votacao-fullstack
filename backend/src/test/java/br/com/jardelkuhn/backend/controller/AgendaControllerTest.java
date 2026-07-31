@@ -71,8 +71,9 @@ public class AgendaControllerTest {
     @Test
     @DisplayName("should find all agendas")
     public void shouldFindAllAgendas() throws Exception {
-        LocalDateTime dateTime = LocalDateTime.now();
-
+        LocalDateTime dateTime = LocalDateTime.of(
+                2026, 7, 31, 20, 20, 27, 0
+        );
         Agenda agenda1 = new Agenda.Builder().setTitle("Agenda1").setDescription("Description1").build();
         Agenda agenda2 = new Agenda.Builder().setTitle("Agenda2").setDescription("").build();
         Agenda agenda3 = new Agenda.Builder().setTitle("Agenda3").setDescription("").setOpenedDate(dateTime).build();
