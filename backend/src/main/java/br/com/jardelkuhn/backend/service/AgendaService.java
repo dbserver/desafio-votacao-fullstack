@@ -34,7 +34,7 @@ public class AgendaService {
 
     public SessionDTO openSession(Long id, OpenSessionDTO openSessionDTO) {
         Agenda agenda = agendaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
-                "Agenda with id " + id + " not found"));
+                "Agenda com id " + id + " não encontrada"));
 
         if (agenda.getOpenedDate() != null) {
             throw new AgendaAlreadyOpenedException();

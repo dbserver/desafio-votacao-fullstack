@@ -6,7 +6,6 @@ import br.com.jardelkuhn.backend.dto.SessionDTO;
 import br.com.jardelkuhn.backend.entity.Agenda;
 import br.com.jardelkuhn.backend.service.AgendaService;
 
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +25,7 @@ public class AgendaController implements IAgendaResource {
         this.agendaService = agendaService;
     }
 
-    @PostMapping
-    public ResponseEntity<Agenda> create(@RequestBody CreateAgendaDTO createAgendaDTO) {
+    public ResponseEntity<Agenda> create(CreateAgendaDTO createAgendaDTO) {
         Agenda agenda = agendaService.createAgenda(createAgendaDTO);
 
         URI location = ServletUriComponentsBuilder
@@ -39,16 +37,12 @@ public class AgendaController implements IAgendaResource {
         return ResponseEntity.created(location).body(agenda);
     }
 
-    @PostMapping("/{agendaId}/open")
-    public ResponseEntity<SessionDTO> openSession(
-            @PathVariable Long agendaId,
-            @Valid @RequestBody OpenSessionDTO openSessionDTO) {
+    public ResponseEntity<SessionDTO> openSession(Long agendaId, OpenSessionDTO openSessionDTO) {
         SessionDTO sessionDTO = agendaService.openSession(agendaId, openSessionDTO);
 
         return ResponseEntity.status(HttpStatus.OK).body(sessionDTO);
     }
 
-    @GetMapping
     public ResponseEntity<List<Agenda>> getAll() {
         return ResponseEntity.ok(agendaService.listAllAgendas());
     }
