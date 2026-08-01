@@ -3,6 +3,8 @@ package br.com.jardelkuhn.backend.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Agenda {
@@ -10,10 +12,19 @@ public class Agenda {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String title;
+    @Column(nullable = false)
     private String description;
     private LocalDateTime openedDate;
     private LocalDateTime limitDate;
+
+    @OneToMany(
+            mappedBy = "agenda",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Vote> votes = new ArrayList<>();
 
     public static class Builder {
         private String title;
@@ -54,19 +65,6 @@ public class Agenda {
         description = builder.description;
         openedDate = builder.openedDate;
         limitDate = builder.limitDate;
-    }
-
-    @Transient
-    public AgendaStatus getStatus() {
-        if (openedDate == null || limitDate == null) {
-            return AgendaStatus.PENDING;
-        }
-
-        if (LocalDateTime.now().isAfter(limitDate)) {
-            return AgendaStatus.FINISHED;
-        }
-
-        return AgendaStatus.STARTED;
     }
 
     // Getters e Setters

@@ -1,9 +1,6 @@
 package br.com.jardelkuhn.backend.controller;
 
-import br.com.jardelkuhn.backend.dto.AgendaDTO;
-import br.com.jardelkuhn.backend.dto.CreateAgendaDTO;
-import br.com.jardelkuhn.backend.dto.OpenSessionDTO;
-import br.com.jardelkuhn.backend.dto.SessionDTO;
+import br.com.jardelkuhn.backend.dto.*;
 import br.com.jardelkuhn.backend.entity.Agenda;
 import br.com.jardelkuhn.backend.service.AgendaService;
 
@@ -27,7 +24,8 @@ public class AgendaController implements IAgendaResource {
         this.agendaService = agendaService;
     }
 
-    public ResponseEntity<AgendaDTO> create(CreateAgendaDTO createAgendaDTO) {
+    @Override
+    public ResponseEntity<AgendaConsolidationDTO> create(CreateAgendaDTO createAgendaDTO) {
         Agenda agenda = agendaService.createAgenda(createAgendaDTO);
 
         URI location = ServletUriComponentsBuilder
@@ -36,16 +34,25 @@ public class AgendaController implements IAgendaResource {
                 .buildAndExpand(agenda.getId())
                 .toUri();
 
-        return ResponseEntity.created(location).body(new AgendaDTO(agenda));
+        return ResponseEntity.created(location).body(AgendaConsolidationDTO.fromNewAgenda(agenda));
     }
 
+    @Override
     public ResponseEntity<SessionDTO> openSession(Long agendaId, OpenSessionDTO openSessionDTO) {
-        LocalDateTime limitDate = agendaService.openSessionAndReturnLimitDate(agendaId, openSessionDTO.duration());
+        LocalDateTime limitDate = agendaService.openAgendaAndReturnLimitDate(agendaId, openSessionDTO.duration());
 
         return ResponseEntity.status(HttpStatus.OK).body(new SessionDTO(limitDate));
     }
 
-    public ResponseEntity<List<AgendaDTO>> getAll() {
-        return ResponseEntity.ok(agendaService.listAllAgendas().stream().map(AgendaDTO::new).toList());
+    @Override
+    public ResponseEntity<List<AgendaConsolidationDTO>> findAll() {
+        List<AgendaConsolidationDTO> agendaDTOS = agendaService.findAllAgendaVotingProjection().stream().map(AgendaConsolidationDTO::fromProjection).toList();
+
+        return ResponseEntity.ok(agendaDTOS);
+    }
+
+    @Override
+    public void vote(Long agendaId, VoteDTO voteDTO) {
+        agendaService.voteOnAgenda(agendaId, voteDTO);
     }
 }

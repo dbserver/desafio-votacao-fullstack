@@ -1,27 +1,31 @@
 package br.com.jardelkuhn.backend.service;
 
-import br.com.jardelkuhn.backend.dto.AgendaAlreadyOpenedException;
-import br.com.jardelkuhn.backend.dto.AgendaDurationInvalidException;
-import br.com.jardelkuhn.backend.dto.CreateAgendaDTO;
+import br.com.jardelkuhn.backend.dto.*;
 import br.com.jardelkuhn.backend.entity.Agenda;
+import br.com.jardelkuhn.backend.entity.AgendaVotingProjection;
+import br.com.jardelkuhn.backend.entity.Vote;
 import br.com.jardelkuhn.backend.repository.AgendaRepository;
 
+import br.com.jardelkuhn.backend.repository.VoteRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AgendaService {
     private final AgendaRepository agendaRepository;
+    private final VoteRepository voteRepository;
 
-    public AgendaService(AgendaRepository agendaRepository) {
+    public AgendaService(AgendaRepository agendaRepository, VoteRepository voteRepository) {
         this.agendaRepository = agendaRepository;
+        this.voteRepository = voteRepository;
     }
 
-    public List<Agenda> listAllAgendas() {
-        return agendaRepository.findAll();
+    public List<AgendaVotingProjection> findAllAgendaVotingProjection() {
+        return agendaRepository.findAllAgendaVotingProjection();
     }
 
     public Agenda createAgenda(CreateAgendaDTO createAgendaDTO) {
@@ -33,16 +37,18 @@ public class AgendaService {
         return agendaRepository.save(agenda);
     }
 
-    public LocalDateTime openSessionAndReturnLimitDate(Long id, Integer duration) {
-        Agenda agenda = agendaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
-                "Agenda com id " + id + " não encontrada"));
+    public LocalDateTime openAgendaAndReturnLimitDate(Long agendaId, Integer duration) {
+        Agenda agenda = agendaRepository.findById(agendaId).orElseThrow(() -> new EntityNotFoundException(
+                "Agenda com id " + agendaId + " não encontrada"));
 
-        if (agenda.getOpenedDate() != null) {
-            throw new AgendaAlreadyOpenedException();
+        boolean isAgendaAlreadyOpened = agenda.getOpenedDate() != null;
+
+        if (isAgendaAlreadyOpened) {
+            throw new SessionOpenedException();
         }
 
         if (duration < 1) {
-            throw new AgendaDurationInvalidException();
+            throw new DurationInvalidException();
         }
 
         LocalDateTime openedDate = LocalDateTime.now();
@@ -55,5 +61,47 @@ public class AgendaService {
         agendaRepository.save(agenda);
 
         return agenda.getLimitDate();
+    }
+
+    public void voteOnAgenda(Long agendaId, VoteDTO voteDTO) {
+        Agenda agenda = agendaRepository.findById(agendaId).orElseThrow(() -> new EntityNotFoundException(
+                "Agenda com id " + agendaId + " não encontrada"));
+
+        boolean isVotingSessionNotOpened = agenda.getOpenedDate() == null || LocalDateTime.now().isBefore(agenda.getOpenedDate()) || agenda.getLimitDate() == null;
+
+        if (isVotingSessionNotOpened) {
+            throw new VotingNotStartedException();
+        }
+
+        boolean isVotingSessionClosed = agenda.getLimitDate().isBefore(LocalDateTime.now());
+
+        if (isVotingSessionClosed) {
+            throw new VotingClosedException();
+        }
+
+        boolean invalidAssociateId = voteDTO.associateId() == null || voteDTO.associateId().isBlank();
+
+        if (invalidAssociateId) {
+            throw new InvalidAssociateException();
+        }
+
+        boolean invalidVoteOption = voteDTO.option() == null;
+
+        if (invalidVoteOption) {
+            throw new InvalidVoteOptionException();
+        }
+
+        Optional<Vote> associateAlreadyVoted = voteRepository.findByAgendaAndAssociateId(agenda, voteDTO.associateId());
+
+        if (associateAlreadyVoted.isPresent()) {
+            throw new DuplicatedVoteException();
+        }
+
+        Vote vote = new Vote();
+        vote.setAgenda(agenda);
+        vote.setAssociateId(voteDTO.associateId());
+        vote.setVoteOption(voteDTO.option());
+
+        voteRepository.save(vote);
     }
 }

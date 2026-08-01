@@ -1,6 +1,6 @@
 package br.com.jardelkuhn.backend.controller;
 
-import br.com.jardelkuhn.backend.dto.AgendaSessionRuleException;
+import br.com.jardelkuhn.backend.dto.AgendaRuleException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +12,9 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class AgendaValidationExceptionHandler {
-    @ExceptionHandler(AgendaSessionRuleException.class)
+    @ExceptionHandler(AgendaRuleException.class)
     public ResponseEntity<Map<String, String>> handleBusinessRuleException(
-            AgendaSessionRuleException ex) {
+            AgendaRuleException ex) {
 
         Map<String, String> errors = new HashMap<>();
 
