@@ -8,7 +8,7 @@ interface AgendaContextValue {
     alert: AlertState;
     status: RequestStatus;
     createAgenda: (createAgendaDTO: CreateAgendaDTO, callback: () => void) => Promise<void>;
-    openSession: (agendaId: number, durationInMinutes: number) => void;
+    openSession: (agendaId: number, durationInMinutes: number) => Promise<void>;
     vote: (agendaId: number, associateId: string, choice: 'YES' | 'NO') => void;
     refreshAgendas: () => Promise<void>;
 }
@@ -55,8 +55,10 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const openSession = (agendaId: number, durationInMinutes: number) => {
-        showAlert(`Sessão aberta por ${durationInMinutes} minuto(s).`, 'info');
+    const openSession = async (agendaId: number, durationInMinutes: number) => {
+        await agendaService.openSession(agendaId, durationInMinutes);
+        
+        refreshAgendas();
     };
 
     const vote = (agendaId: number, associateId: string, choice: 'YES' | 'NO') => {

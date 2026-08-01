@@ -4,7 +4,7 @@ export interface Agenda {
     description: string;
     status: AgendaStatus;
     duration: number;
-    closesAt: number | null;
+    limitDate: string;
     votes: Vote[];
 }
 

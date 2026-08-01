@@ -13,4 +13,10 @@ export const agendaService = {
         const response = await apiClient.post('/agendas', agenda);
         return response.data;
     },
+
+    // open a new agenda session
+    openSession: async (agendaId: number, duration: number) => {
+        const response = await apiClient.post(`/agendas/${agendaId}/open`, { duration });
+        return response.data;
+    },
 };
