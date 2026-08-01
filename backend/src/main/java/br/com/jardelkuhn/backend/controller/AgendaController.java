@@ -1,5 +1,6 @@
 package br.com.jardelkuhn.backend.controller;
 
+import br.com.jardelkuhn.backend.dto.AgendaDTO;
 import br.com.jardelkuhn.backend.dto.CreateAgendaDTO;
 import br.com.jardelkuhn.backend.dto.OpenSessionDTO;
 import br.com.jardelkuhn.backend.dto.SessionDTO;
@@ -25,7 +26,7 @@ public class AgendaController implements IAgendaResource {
         this.agendaService = agendaService;
     }
 
-    public ResponseEntity<Agenda> create(CreateAgendaDTO createAgendaDTO) {
+    public ResponseEntity<AgendaDTO> create(CreateAgendaDTO createAgendaDTO) {
         Agenda agenda = agendaService.createAgenda(createAgendaDTO);
 
         URI location = ServletUriComponentsBuilder
@@ -34,7 +35,7 @@ public class AgendaController implements IAgendaResource {
                 .buildAndExpand(agenda.getId())
                 .toUri();
 
-        return ResponseEntity.created(location).body(agenda);
+        return ResponseEntity.created(location).body(new AgendaDTO(agenda));
     }
 
     public ResponseEntity<SessionDTO> openSession(Long agendaId, OpenSessionDTO openSessionDTO) {
@@ -43,7 +44,7 @@ public class AgendaController implements IAgendaResource {
         return ResponseEntity.status(HttpStatus.OK).body(sessionDTO);
     }
 
-    public ResponseEntity<List<Agenda>> getAll() {
+    public ResponseEntity<List<AgendaDTO>> getAll() {
         return ResponseEntity.ok(agendaService.listAllAgendas());
     }
 }

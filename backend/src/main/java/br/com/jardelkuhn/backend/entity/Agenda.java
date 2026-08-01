@@ -1,9 +1,6 @@
 package br.com.jardelkuhn.backend.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
@@ -18,8 +15,7 @@ public class Agenda {
     private LocalDateTime openedDate;
     private LocalDateTime limitDate;
 
-    public static class Builder
-    {
+    public static class Builder {
         private String title;
         private String description;
         private LocalDateTime openedDate;
@@ -45,31 +41,58 @@ public class Agenda {
             return this;
         }
 
-        public Agenda build()
-        {
+        public Agenda build() {
             return new Agenda(this);
         }
     }
 
-    public Agenda(){}
+    public Agenda() {
+    }
 
-    private Agenda(Builder builder)
-    {
+    private Agenda(Builder builder) {
         title = builder.title;
         description = builder.description;
         openedDate = builder.openedDate;
         limitDate = builder.limitDate;
     }
 
+    @Transient
+    public AgendaStatus getStatus() {
+        if (openedDate == null || limitDate == null) {
+            return AgendaStatus.PENDING;
+        }
+
+        if (LocalDateTime.now().isAfter(limitDate)) {
+            return AgendaStatus.FINISHED;
+        }
+
+        return AgendaStatus.STARTED;
+    }
+
     // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public LocalDateTime getLimitDate() {
         return limitDate;

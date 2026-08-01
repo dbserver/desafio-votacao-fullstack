@@ -1,5 +1,6 @@
 package br.com.jardelkuhn.backend.controller;
 
+import br.com.jardelkuhn.backend.dto.AgendaDTO;
 import br.com.jardelkuhn.backend.dto.CreateAgendaDTO;
 import br.com.jardelkuhn.backend.dto.OpenSessionDTO;
 import br.com.jardelkuhn.backend.dto.SessionDTO;
@@ -28,7 +29,7 @@ public interface IAgendaResource {
             @ApiResponse(responseCode = "400", description = "Dados da pauta inválidos")
     })
     @PostMapping
-    ResponseEntity<Agenda> create(@RequestBody @Valid CreateAgendaDTO agendaDTO);
+    ResponseEntity<AgendaDTO> create(@RequestBody @Valid CreateAgendaDTO agendaDTO);
 
     @Operation(summary = "Abre uma sessão de votação", description = "Define um limite de tempo (duration: long) para a votação de uma pauta específica")
     @PostMapping("/{agendaId}/open")
@@ -36,5 +37,5 @@ public interface IAgendaResource {
 
     @Operation(summary = "Lista todas as pautas", description = "Lista todas as pautas cadastradas")
     @GetMapping
-    ResponseEntity<List<Agenda>> getAll();
+    ResponseEntity<List<AgendaDTO>> getAll();
 }

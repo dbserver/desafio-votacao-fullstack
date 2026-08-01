@@ -18,8 +18,8 @@ public class AgendaService {
         this.agendaRepository = agendaRepository;
     }
 
-    public List<Agenda> listAllAgendas() {
-        return agendaRepository.findAll();
+    public List<AgendaDTO> listAllAgendas() {
+        return agendaRepository.findAll().stream().map(AgendaDTO::new).toList();
     }
 
     public Agenda createAgenda(CreateAgendaDTO createAgendaDTO) {
