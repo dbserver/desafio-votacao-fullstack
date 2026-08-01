@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -39,12 +40,12 @@ public class AgendaController implements IAgendaResource {
     }
 
     public ResponseEntity<SessionDTO> openSession(Long agendaId, OpenSessionDTO openSessionDTO) {
-        SessionDTO sessionDTO = agendaService.openSession(agendaId, openSessionDTO);
+        LocalDateTime limitDate = agendaService.openSessionAndReturnLimitDate(agendaId, openSessionDTO.duration());
 
-        return ResponseEntity.status(HttpStatus.OK).body(sessionDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(new SessionDTO(limitDate));
     }
 
     public ResponseEntity<List<AgendaDTO>> getAll() {
-        return ResponseEntity.ok(agendaService.listAllAgendas());
+        return ResponseEntity.ok(agendaService.listAllAgendas().stream().map(AgendaDTO::new).toList());
     }
 }

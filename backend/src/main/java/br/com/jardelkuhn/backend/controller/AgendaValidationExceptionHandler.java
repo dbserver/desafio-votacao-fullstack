@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -15,11 +16,10 @@ public class AgendaValidationExceptionHandler {
     public ResponseEntity<Map<String, String>> handleBusinessRuleException(
             AgendaSessionRuleException ex) {
 
-        Map<String, String> error = Map.of(
-                "message", ex.getMessage()
-        );
+        Map<String, String> errors = new HashMap<>();
 
-        // conflito, a requisição provavelmente não deveria ter acontecido
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+        errors.put("error", ex.getMessage());
+
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 }

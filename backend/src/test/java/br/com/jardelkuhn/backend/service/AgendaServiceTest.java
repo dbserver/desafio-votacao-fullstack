@@ -84,7 +84,7 @@ public class AgendaServiceTest {
         when(agendaRepository.findById(agendaId)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-                () -> agendaService.openSession(agendaId, new OpenSessionDTO(2L))
+                () -> agendaService.openSessionAndReturnLimitDate(agendaId, 2)
         );
 
         assertEquals("Agenda com id 1 não encontrada", exception.getMessage());
@@ -105,7 +105,7 @@ public class AgendaServiceTest {
                 .thenReturn(Optional.of(agenda));
 
         assertThrows(AgendaAlreadyOpenedException.class,
-                () -> agendaService.openSession(agendaId, new OpenSessionDTO(2L))
+                () -> agendaService.openSessionAndReturnLimitDate(agendaId, 2)
         );
 
         verify(agendaRepository, never()).save(any());
@@ -123,7 +123,7 @@ public class AgendaServiceTest {
                 .thenReturn(Optional.of(agenda));
 
         assertThrows(AgendaDurationInvalidException.class,
-                () -> agendaService.openSession(agendaId, new OpenSessionDTO(0L))
+                () -> agendaService.openSessionAndReturnLimitDate(agendaId, 0)
         );
 
         verify(agendaRepository, never()).save(any());
@@ -139,7 +139,7 @@ public class AgendaServiceTest {
 
         when(agendaRepository.findById(agendaId)).thenReturn(Optional.of(agenda));
 
-        agendaService.openSession(agendaId, new OpenSessionDTO(30L));
+        agendaService.openSessionAndReturnLimitDate(agendaId, 30);
 
         ArgumentCaptor<Agenda> captor = ArgumentCaptor.forClass(Agenda.class);
 

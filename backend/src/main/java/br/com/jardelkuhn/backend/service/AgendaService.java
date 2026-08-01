@@ -1,6 +1,8 @@
 package br.com.jardelkuhn.backend.service;
 
-import br.com.jardelkuhn.backend.dto.*;
+import br.com.jardelkuhn.backend.dto.AgendaAlreadyOpenedException;
+import br.com.jardelkuhn.backend.dto.AgendaDurationInvalidException;
+import br.com.jardelkuhn.backend.dto.CreateAgendaDTO;
 import br.com.jardelkuhn.backend.entity.Agenda;
 import br.com.jardelkuhn.backend.repository.AgendaRepository;
 
@@ -18,8 +20,8 @@ public class AgendaService {
         this.agendaRepository = agendaRepository;
     }
 
-    public List<AgendaDTO> listAllAgendas() {
-        return agendaRepository.findAll().stream().map(AgendaDTO::new).toList();
+    public List<Agenda> listAllAgendas() {
+        return agendaRepository.findAll();
     }
 
     public Agenda createAgenda(CreateAgendaDTO createAgendaDTO) {
@@ -27,12 +29,11 @@ public class AgendaService {
 
         agenda.setTitle(createAgendaDTO.title());
         agenda.setDescription(createAgendaDTO.description());
-        agenda.setOpenedDate(LocalDateTime.now());
 
         return agendaRepository.save(agenda);
     }
 
-    public SessionDTO openSession(Long id, OpenSessionDTO openSessionDTO) {
+    public LocalDateTime openSessionAndReturnLimitDate(Long id, Integer duration) {
         Agenda agenda = agendaRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
                 "Agenda com id " + id + " não encontrada"));
 
@@ -40,12 +41,11 @@ public class AgendaService {
             throw new AgendaAlreadyOpenedException();
         }
 
-        if (openSessionDTO.duration() < 1){
+        if (duration < 1) {
             throw new AgendaDurationInvalidException();
         }
 
         LocalDateTime openedDate = LocalDateTime.now();
-        Long duration = openSessionDTO.duration();
 
         LocalDateTime sessionLimitDate = openedDate.plusMinutes(duration);
 
@@ -54,6 +54,6 @@ public class AgendaService {
 
         agendaRepository.save(agenda);
 
-        return new SessionDTO(agenda.getLimitDate());
+        return agenda.getLimitDate();
     }
 }

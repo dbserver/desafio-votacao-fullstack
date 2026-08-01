@@ -157,11 +157,11 @@ public class AgendaControllerTest {
     void shouldOpenAgendaSession() throws Exception {
         Long agendaId = 1L;
 
-        OpenSessionDTO openSessionDTO = new OpenSessionDTO(30L);
+        LocalDateTime limitDate = LocalDateTime.of(2026, 7, 30, 20, 0);
 
-        SessionDTO response = new SessionDTO(LocalDateTime.of(2026, 7, 30, 20, 0));
+        OpenSessionDTO openSessionDTO = new OpenSessionDTO(30);
 
-        when(agendaService.openSession(eq(agendaId), any(OpenSessionDTO.class))).thenReturn(response);
+        when(agendaService.openSessionAndReturnLimitDate(eq(agendaId), eq(30))).thenReturn(limitDate);
 
         mockMvc.perform(post("/api/agendas/{agendaId}/open", agendaId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -169,13 +169,13 @@ public class AgendaControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.limitDate").exists());
 
-        verify(agendaService).openSession(eq(agendaId), any(OpenSessionDTO.class));
+        verify(agendaService).openSessionAndReturnLimitDate(eq(agendaId), eq(30));
     }
 
     @Test
     @DisplayName("Should return bad request when duration is null")
     void shouldNotOpenSessionWithoutDuration() throws Exception {
-        OpenSessionDTO openSessionDTO = new OpenSessionDTO(0L);
+        OpenSessionDTO openSessionDTO = new OpenSessionDTO(0);
 
         mockMvc.perform(post("/api/agendas/{agendaId}/open", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
