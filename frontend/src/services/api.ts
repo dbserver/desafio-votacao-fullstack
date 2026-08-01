@@ -7,4 +7,18 @@ const apiClient = axios.create({
     },
 });
 
+apiClient.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response?.status === 400) {
+            return Promise.reject({
+                type: "VALIDATION_ERROR",
+                errors: error.response.data,
+            });
+        }
+
+        return Promise.reject(error);
+    }
+);
+
 export default apiClient;

@@ -8,7 +8,7 @@ interface AgendaContextValue {
     alert: AlertState;
     status: RequestStatus;
     createAgenda: (createAgendaDTO: CreateAgendaDTO, callback: () => void) => Promise<void>;
-    openSession: (agendaId: number, durationInMinutes: number) => Promise<void>;
+    openAgenda: (agendaId: number, durationInMinutes: number, afterOpenAgenda: (error?: string) => void) => Promise<void>;
     vote: (agendaId: number, associateId: string, choice: 'YES' | 'NO') => void;
     refreshAgendas: () => Promise<void>;
 }
@@ -46,19 +46,26 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
 
             showAlert('Pauta cadastrada com sucesso!', 'success');
         } catch (error: any) {
-            if (error.response && error.response.status === 400 && error.response.data) {
-                showAlert(Object.values(error.response.data).join("\n"), 'warning');
+            if (error.type === 'VALIDATION_ERROR' && error.errors) {
+                showAlert(Object.values(error.errors).join("\n"), 'warning');
             } else {
-                console.error('Failed to load agendas:', error);
                 showAlert('Erro ao cadastrar pauta.', 'danger');
             }
         }
     };
 
-    const openSession = async (agendaId: number, durationInMinutes: number) => {
-        await agendaService.openSession(agendaId, durationInMinutes);
-        
-        refreshAgendas();
+    const openAgenda = async (agendaId: number, durationInMinutes: number, afterOpenAgenda: (error?: string) => void) => {
+        try {
+            await agendaService.openSession(agendaId, durationInMinutes);
+
+            afterOpenAgenda();
+        } catch (error: any) {
+            if (error.type === 'VALIDATION_ERROR' && error.errors) {
+                afterOpenAgenda(Object.values(error.errors).join("\n"));
+            } else {
+                showAlert('Erro ao abrir sessão de pauta.', 'danger');
+            }
+        }
     };
 
     const vote = (agendaId: number, associateId: string, choice: 'YES' | 'NO') => {
@@ -76,7 +83,7 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
             alert,
             status,
             createAgenda,
-            openSession,
+            openAgenda,
             vote,
             refreshAgendas
         }),

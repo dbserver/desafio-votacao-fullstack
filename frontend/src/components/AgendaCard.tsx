@@ -9,16 +9,18 @@ interface AgendaCardProps {
 }
 
 function AgendaCard({ agenda }: AgendaCardProps) {
-    const { openSession, vote } = useAgenda();
+    const { openAgenda, refreshAgendas } = useAgenda();
+
     const [duration, setDuration] = useState('');
     const [remainingTime, setRemainingTime] = useState('');
+    const [error, setError] = useState('');
 
     useEffect(() => {
         if (agenda.status !== 'STARTED' || !agenda.limitDate) return;
 
         const updateTimer = () => {
             const now = new Date().getTime();
-            
+
             const limitDate = Date.parse(agenda.limitDate);
 
             if (limitDate === null) {
@@ -42,9 +44,16 @@ function AgendaCard({ agenda }: AgendaCardProps) {
         return () => clearInterval(interval);
     }, [agenda.status, agenda.limitDate]);
 
-    const handleStartSession = () => {
-        const parsedDuration = Number(duration) || 1;
-        openSession(agenda.id, parsedDuration);
+    const handleOpenAgenda = () => {
+        const parsedDuration = Number(duration) || 0;
+        openAgenda(agenda.id, parsedDuration, (error) => {
+            if (error) {
+                setError(error);
+            } else {
+                setError('');
+                refreshAgendas();
+            }
+        });
     };
 
     return (
@@ -82,10 +91,15 @@ function AgendaCard({ agenda }: AgendaCardProps) {
                                 value={duration}
                                 onChange={(e) => setDuration(e.target.value)}
                             />
-                            <button className="btn btn-primary" onClick={handleStartSession}>
+                            <button className="btn btn-primary" onClick={handleOpenAgenda}>
                                 Iniciar Votação
                             </button>
                         </div>
+                        {error && (
+                            <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                                {error}
+                            </div>
+                        )}
                     </div>
                 )}
 
