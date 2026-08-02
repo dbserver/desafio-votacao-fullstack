@@ -1,9 +1,21 @@
-version: '3'
-
 services:
+  app:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    container_name: app
+    restart: always
+    depends_on:
+      - database
+    ports:
+      - "8080:8080"
+    environment:
+      - MYSQL_DATABASE=database
+      - MYSQL_ROOT_USERNAME=root
+      - MYSQL_ROOT_PASSWORD=root
 
-  mysql:
-    image: mysql
+  database:
+    image: mysql:8.4
     environment:
       - MYSQL_DATABASE=votingdb
       - MYSQL_ROOT_USERNAME=root
@@ -14,8 +26,3 @@ services:
       retries: 10
     ports:
       - "3306:3306"
-    networks:
-      - voting_network
-
-networks:
-  voting_network:
