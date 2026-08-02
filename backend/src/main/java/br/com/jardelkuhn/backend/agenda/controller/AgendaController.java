@@ -2,6 +2,7 @@ package br.com.jardelkuhn.backend.agenda.controller;
 
 import br.com.jardelkuhn.backend.agenda.dto.*;
 import br.com.jardelkuhn.backend.agenda.entity.Agenda;
+import br.com.jardelkuhn.backend.agenda.exception.AgendaNotFound;
 import br.com.jardelkuhn.backend.agenda.mapper.AgendaConsolidationMapper;
 import br.com.jardelkuhn.backend.agenda.service.AgendaService;
 
@@ -56,6 +57,7 @@ public class AgendaController implements IAgendaResource {
 
     @Override
     public void vote(Long agendaId, VoteDTO voteDTO) {
+        if(true)throw new AgendaNotFound(1L);
         agendaService.voteOnAgenda(agendaId, voteDTO);
     }
 }

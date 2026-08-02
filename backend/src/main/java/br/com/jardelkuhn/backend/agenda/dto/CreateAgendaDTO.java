@@ -9,6 +9,7 @@ public record CreateAgendaDTO(
         String title,
 
         @NotNull(message = "A descrição não pode ser nula")
+        @Size(max = 255, message = "A descrição não deve ter mais que 255 caracteres")
         String description
 ) {
 }
