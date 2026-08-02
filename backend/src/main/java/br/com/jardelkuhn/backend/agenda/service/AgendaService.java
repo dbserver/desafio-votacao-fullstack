@@ -39,8 +39,7 @@ public class AgendaService {
     }
 
     public LocalDateTime openAgendaAndReturnLimitDate(Long agendaId, Integer duration) {
-        Agenda agenda = agendaRepository.findById(agendaId).orElseThrow(() -> new EntityNotFoundException(
-                "Agenda com id " + agendaId + " não encontrada"));
+        Agenda agenda = agendaRepository.findById(agendaId).orElseThrow(() -> new AgendaNotFound(agendaId));
 
         boolean isAgendaAlreadyOpened = agenda.getOpenedDate() != null;
 
@@ -65,8 +64,7 @@ public class AgendaService {
     }
 
     public void voteOnAgenda(Long agendaId, VoteDTO voteDTO) {
-        Agenda agenda = agendaRepository.findById(agendaId).orElseThrow(() -> new EntityNotFoundException(
-                "Agenda com id " + agendaId + " não encontrada"));
+        Agenda agenda = agendaRepository.findById(agendaId).orElseThrow(() -> new AgendaNotFound(agendaId));
 
         boolean isVotingSessionNotOpened = agenda.getOpenedDate() == null || LocalDateTime.now().isBefore(agenda.getOpenedDate()) || agenda.getLimitDate() == null;
 

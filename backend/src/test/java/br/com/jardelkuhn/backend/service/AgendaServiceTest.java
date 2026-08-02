@@ -9,7 +9,6 @@ import br.com.jardelkuhn.backend.agenda.repository.AgendaRepository;
 
 import br.com.jardelkuhn.backend.agenda.repository.VoteRepository;
 import br.com.jardelkuhn.backend.agenda.service.AgendaService;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +17,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -98,17 +96,17 @@ public class AgendaServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw EntityNotFoundException when agenda does not exist")
-    void shouldThrowEntityNotFoundException() {
+    @DisplayName("Should throw AgendaNotFound when agenda does not exist")
+    void shouldThrowNotFoundException() {
         Long agendaId = 1L;
 
         when(agendaRepository.findById(agendaId)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+        AgendaNotFound exception = assertThrows(AgendaNotFound.class,
                 () -> agendaService.openAgendaAndReturnLimitDate(agendaId, 2)
         );
 
-        assertEquals("Agenda com id 1 não encontrada", exception.getMessage());
+        assertEquals("Pauta com id 1 não encontrada", exception.getMessage());
 
         verify(agendaRepository, never()).save(any());
     }
@@ -183,7 +181,7 @@ public class AgendaServiceTest {
         VoteDTO dto = new VoteDTO("associate", VoteOption.YES);
 
         assertThrows(
-                EntityNotFoundException.class,
+                AgendaNotFound.class,
                 () -> agendaService.voteOnAgenda(1L, dto)
         );
 
