@@ -26,45 +26,7 @@ public class Agenda {
     )
     private List<Vote> votes = new ArrayList<>();
 
-    public static class Builder {
-        private String title;
-        private String description;
-        private LocalDateTime openedDate;
-        private LocalDateTime limitDate;
-
-        public Builder setTitle(String title) {
-            this.title = title;
-            return this;
-        }
-
-        public Builder setDescription(String description) {
-            this.description = description;
-            return this;
-        }
-
-        public Builder setOpenedDate(LocalDateTime openedDate) {
-            this.openedDate = openedDate;
-            return this;
-        }
-
-        public Builder setLimitDate(LocalDateTime limitDate) {
-            this.limitDate = limitDate;
-            return this;
-        }
-
-        public Agenda build() {
-            return new Agenda(this);
-        }
-    }
-
     public Agenda() {
-    }
-
-    private Agenda(Builder builder) {
-        title = builder.title;
-        description = builder.description;
-        openedDate = builder.openedDate;
-        limitDate = builder.limitDate;
     }
 
     // Getters e Setters

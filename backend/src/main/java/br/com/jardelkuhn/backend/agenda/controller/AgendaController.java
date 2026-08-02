@@ -2,6 +2,7 @@ package br.com.jardelkuhn.backend.agenda.controller;
 
 import br.com.jardelkuhn.backend.agenda.dto.*;
 import br.com.jardelkuhn.backend.agenda.entity.Agenda;
+import br.com.jardelkuhn.backend.agenda.mapper.AgendaConsolidationMapper;
 import br.com.jardelkuhn.backend.agenda.service.AgendaService;
 
 import org.springframework.http.HttpStatus;
@@ -19,9 +20,11 @@ import java.util.List;
 public class AgendaController implements IAgendaResource {
 
     private final AgendaService agendaService;
+    private final AgendaConsolidationMapper agendaConsolidationMapper;
 
-    public AgendaController(AgendaService agendaService) {
+    public AgendaController(AgendaService agendaService, AgendaConsolidationMapper agendaConsolidationMapper) {
         this.agendaService = agendaService;
+        this.agendaConsolidationMapper = agendaConsolidationMapper;
     }
 
     @Override
@@ -34,7 +37,7 @@ public class AgendaController implements IAgendaResource {
                 .buildAndExpand(agenda.getId())
                 .toUri();
 
-        return ResponseEntity.created(location).body(AgendaConsolidationDTO.fromNewAgenda(agenda));
+        return ResponseEntity.created(location).body(agendaConsolidationMapper.fromAgenda(agenda));
     }
 
     @Override
@@ -46,7 +49,7 @@ public class AgendaController implements IAgendaResource {
 
     @Override
     public ResponseEntity<List<AgendaConsolidationDTO>> findAll() {
-        List<AgendaConsolidationDTO> agendaDTOS = agendaService.findAllAgendaVotingProjection().stream().map(AgendaConsolidationDTO::fromProjection).toList();
+        List<AgendaConsolidationDTO> agendaDTOS = agendaService.findAllAgendaVotingProjection().stream().map(agendaConsolidationMapper::fromProjection).toList();
 
         return ResponseEntity.ok(agendaDTOS);
     }

@@ -1,9 +1,14 @@
 package br.com.jardelkuhn.backend.service;
 
-import br.com.jardelkuhn.backend.dto.*;
-import br.com.jardelkuhn.backend.entity.Agenda;
-import br.com.jardelkuhn.backend.repository.AgendaRepository;
+import br.com.jardelkuhn.backend.agenda.businessrule.AgendaStatusCalculator;
+import br.com.jardelkuhn.backend.agenda.dto.CreateAgendaDTO;
+import br.com.jardelkuhn.backend.agenda.dto.VoteDTO;
+import br.com.jardelkuhn.backend.agenda.entity.*;
+import br.com.jardelkuhn.backend.agenda.exception.*;
+import br.com.jardelkuhn.backend.agenda.repository.AgendaRepository;
 
+import br.com.jardelkuhn.backend.agenda.repository.VoteRepository;
+import br.com.jardelkuhn.backend.agenda.service.AgendaService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +18,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -27,29 +34,43 @@ public class AgendaServiceTest {
     @Mock
     private AgendaRepository agendaRepository;
 
+    @Mock
+    private VoteRepository voteRepository;
+
     @InjectMocks
     private AgendaService agendaService;
 
     @Test
-    @DisplayName("Should find all agendas")
-    public void shouldListAllAgendas() {
-        Agenda a1 = new Agenda();
-        a1.setId(1L);
-        a1.setTitle("Agenda 1");
-        a1.setDescription("descrição 1");
+    @DisplayName("Should find all agendas with voting results")
+    public void shouldFindAllAgendasWithConsolidation() {
+        LocalDateTime limitDate = LocalDateTime.now().minusDays(1);
 
-        Agenda a2 = new Agenda();
-        a2.setId(2L);
-        a2.setTitle("Agenda 2");
-        a2.setDescription("descrição 2");
+        AgendaVotingProjection projection =
+                new AgendaVotingProjection.Builder(1L)
+                        .setTitle("Agenda1")
+                        .setOpenedDate(LocalDateTime.now().minusDays(2))
+                        .setLimitDate(limitDate)
+                        .setYesVotes(5L)
+                        .setNoVotes(3L)
+                        .setTotalVotes(8L)
+                        .build();
 
-        when(agendaRepository.findAll()).thenReturn(List.of(a1, a2));
+        when(agendaRepository.findAllAgendaVotingProjection()).thenReturn(List.of(projection));
 
-        List<Agenda> result = agendaService.listAllAgendas();
+        List<AgendaVotingProjection> result = agendaService.findAllAgendaVotingProjection();
 
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        verify(agendaRepository, times(1)).findAll();
+        assertEquals(1, result.size());
+
+        AgendaVotingProjection agenda = result.getFirst();
+
+        assertEquals(1L, agenda.id());
+        assertEquals("Agenda1", agenda.title());
+        assertEquals(AgendaStatus.FINISHED, new AgendaStatusCalculator(Clock.systemDefaultZone()).calculate(agenda.openedDate(), agenda.limitDate()));
+        assertEquals(5L, agenda.yesVotes());
+        assertEquals(3L, agenda.noVotes());
+        assertEquals(8L, agenda.totalVotes());
+
+        verify(agendaRepository).findAllAgendaVotingProjection();
     }
 
     @Test
@@ -84,7 +105,7 @@ public class AgendaServiceTest {
         when(agendaRepository.findById(agendaId)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-                () -> agendaService.openSessionAndReturnLimitDate(agendaId, 2)
+                () -> agendaService.openAgendaAndReturnLimitDate(agendaId, 2)
         );
 
         assertEquals("Agenda com id 1 não encontrada", exception.getMessage());
@@ -104,8 +125,8 @@ public class AgendaServiceTest {
         when(agendaRepository.findById(agendaId))
                 .thenReturn(Optional.of(agenda));
 
-        assertThrows(AgendaAlreadyOpenedException.class,
-                () -> agendaService.openSessionAndReturnLimitDate(agendaId, 2)
+        assertThrows(AlreadyOpenedException.class,
+                () -> agendaService.openAgendaAndReturnLimitDate(agendaId, 2)
         );
 
         verify(agendaRepository, never()).save(any());
@@ -122,8 +143,8 @@ public class AgendaServiceTest {
         when(agendaRepository.findById(agendaId))
                 .thenReturn(Optional.of(agenda));
 
-        assertThrows(AgendaDurationInvalidException.class,
-                () -> agendaService.openSessionAndReturnLimitDate(agendaId, 0)
+        assertThrows(DurationInvalidException.class,
+                () -> agendaService.openAgendaAndReturnLimitDate(agendaId, 0)
         );
 
         verify(agendaRepository, never()).save(any());
@@ -139,7 +160,7 @@ public class AgendaServiceTest {
 
         when(agendaRepository.findById(agendaId)).thenReturn(Optional.of(agenda));
 
-        agendaService.openSessionAndReturnLimitDate(agendaId, 30);
+        agendaService.openAgendaAndReturnLimitDate(agendaId, 30);
 
         ArgumentCaptor<Agenda> captor = ArgumentCaptor.forClass(Agenda.class);
 
@@ -152,5 +173,148 @@ public class AgendaServiceTest {
         assertNotNull(savedAgenda.getOpenedDate());
         assertEquals(savedAgenda.getId(), agenda.getId());
         assertEquals(savedAgenda.getOpenedDate().plusMinutes(30), savedAgenda.getLimitDate());
+    }
+
+    @Test
+    @DisplayName("Should throw not found when agenda does not exist")
+    void shouldThrowNotFoundWhenAgendaDoesNotExist() {
+        when(agendaRepository.findById(1L)).thenReturn(Optional.empty());
+
+        VoteDTO dto = new VoteDTO("associate", VoteOption.YES);
+
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> agendaService.voteOnAgenda(1L, dto)
+        );
+
+        verify(agendaRepository).findById(1L);
+        verifyNoInteractions(voteRepository);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when voting session has not started")
+    void shouldThrowExceptionWhenVotingSessionNotStarted() {
+        Agenda agenda = new Agenda();
+        agenda.setOpenedDate(null);
+
+        when(agendaRepository.findById(1L)).thenReturn(Optional.of(agenda));
+
+        VoteDTO dto = new VoteDTO("associate", VoteOption.YES);
+
+        assertThrows(
+                NotStartedException.class,
+                () -> agendaService.voteOnAgenda(1L, dto)
+        );
+
+        verify(voteRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when voting session is closed")
+    void shouldThrowExceptionWhenVotingSessionClosed() {
+        Agenda agenda = new Agenda();
+
+        agenda.setOpenedDate(LocalDateTime.now().minusHours(2));
+        agenda.setLimitDate(LocalDateTime.now().minusMinutes(1));
+
+        when(agendaRepository.findById(1L)).thenReturn(Optional.of(agenda));
+
+        VoteDTO dto = new VoteDTO("associate", VoteOption.YES);
+
+        assertThrows(
+                AlreadyClosedException.class,
+                () -> agendaService.voteOnAgenda(1L, dto)
+        );
+
+        verify(voteRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when associate id is invalid")
+    void shouldThrowExceptionWhenAssociateIsInvalid() {
+        Agenda agenda = new Agenda();
+
+        agenda.setOpenedDate(LocalDateTime.now().minusHours(1));
+        agenda.setLimitDate(LocalDateTime.now().plusHours(4));
+
+        when(agendaRepository.findById(1L)).thenReturn(Optional.of(agenda));
+
+        VoteDTO dto = new VoteDTO("", VoteOption.YES);
+
+        assertThrows(
+                InvalidAssociateException.class,
+                () -> agendaService.voteOnAgenda(1L, dto)
+        );
+
+        verify(voteRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when vote option is null")
+    void shouldThrowExceptionWhenVoteOptionIsNull() {
+        Agenda agenda = new Agenda();
+
+        agenda.setOpenedDate(LocalDateTime.now().minusHours(1));
+        agenda.setLimitDate(LocalDateTime.now().plusHours(4));
+
+        when(agendaRepository.findById(1L)).thenReturn(Optional.of(agenda));
+
+        VoteDTO dto = new VoteDTO("associate", null);
+
+        assertThrows(
+                InvalidVoteOptionException.class,
+                () -> agendaService.voteOnAgenda(1L, dto)
+        );
+
+        verify(voteRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw exception when associate already voted")
+    void shouldThrowExceptionWhenAssociateAlreadyVoted() {
+        Agenda agenda = new Agenda();
+
+        agenda.setOpenedDate(LocalDateTime.now().minusHours(1));
+        agenda.setLimitDate(LocalDateTime.now().plusHours(4));
+
+        when(agendaRepository.findById(1L)).thenReturn(Optional.of(agenda));
+
+        when(voteRepository.findByAgendaAndAssociateId(agenda, "associate")).thenReturn(Optional.of(new Vote()));
+
+        VoteDTO dto = new VoteDTO("associate", VoteOption.YES);
+
+        assertThrows(
+                DuplicatedVoteException.class,
+                () -> agendaService.voteOnAgenda(1L, dto)
+        );
+
+        verify(voteRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should save vote successfully")
+    void shouldSaveVote() {
+        Agenda agenda = new Agenda();
+
+        agenda.setOpenedDate(LocalDateTime.now().minusHours(1));
+        agenda.setLimitDate(LocalDateTime.now().plusHours(4));
+
+        when(agendaRepository.findById(1L)).thenReturn(Optional.of(agenda));
+
+        when(voteRepository.findByAgendaAndAssociateId(agenda, "associate")).thenReturn(Optional.empty());
+
+        VoteDTO dto = new VoteDTO("associate", VoteOption.YES);
+
+        agendaService.voteOnAgenda(1L, dto);
+
+        ArgumentCaptor<Vote> captor = ArgumentCaptor.forClass(Vote.class);
+
+        verify(voteRepository).save(captor.capture());
+
+        Vote saved = captor.getValue();
+
+        assertEquals(agenda, saved.getAgenda());
+        assertEquals("associate", saved.getAssociateId());
+        assertEquals(VoteOption.YES, saved.getVoteOption());
     }
 }

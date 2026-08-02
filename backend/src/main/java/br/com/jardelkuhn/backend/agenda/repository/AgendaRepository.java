@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface AgendaRepository extends JpaRepository<Agenda, Long> {
     @Query("""
-        select new br.com.jardelkuhn.backend.entity.AgendaVotingProjection(
+        select new br.com.jardelkuhn.backend.agenda.entity.AgendaVotingProjection(
             a.id,
             a.title,
             a.description,
@@ -22,7 +22,7 @@ public interface AgendaRepository extends JpaRepository<Agenda, Long> {
             /* Contabiliza votos YES */
             sum(
                 case 
-                    when v.voteOption = br.com.jardelkuhn.backend.entity.VoteOption.YES 
+                    when v.voteOption = br.com.jardelkuhn.backend.agenda.entity.VoteOption.YES 
                     then 1 
                     else 0 
                 end
@@ -31,7 +31,7 @@ public interface AgendaRepository extends JpaRepository<Agenda, Long> {
             /* Contabiliza votos NO */
             sum(
                 case 
-                    when v.voteOption = br.com.jardelkuhn.backend.entity.VoteOption.NO 
+                    when v.voteOption = br.com.jardelkuhn.backend.agenda.entity.VoteOption.NO 
                     then 1 
                     else 0 
                 end
