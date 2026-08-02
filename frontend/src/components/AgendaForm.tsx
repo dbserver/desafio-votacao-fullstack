@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SyntheticEvent } from 'react';
 import { useAgenda } from '../contexts/AgendaContext';
 
 function AgendaForm() {
@@ -7,7 +7,7 @@ function AgendaForm() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         createAgenda({ title, description }, () => {

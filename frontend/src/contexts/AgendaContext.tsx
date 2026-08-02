@@ -1,22 +1,22 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { agendaService } from '../services/agendaService';
-import type { Agenda, CreateAgendaDTO } from '../types/agenda';
+import type { AgendaDTO, CreateAgendaDTO, VoteOption } from '../types/agenda';
 import type { AlertState, RequestStatus } from '../types/general';
 
 interface AgendaContextValue {
-    agendas: Agenda[];
+    agendas: AgendaDTO[];
     alert: AlertState;
     status: RequestStatus;
-    createAgenda: (createAgendaDTO: CreateAgendaDTO, callback: () => void) => Promise<void>;
+    createAgenda: (createAgendaDTO: CreateAgendaDTO, afterCreateAgenda: () => void) => Promise<void>;
     openAgenda: (agendaId: number, durationInMinutes: number, afterOpenAgenda: (error?: string) => void) => Promise<void>;
-    vote: (agendaId: number, associateId: string, choice: 'YES' | 'NO') => void;
+    vote: (agendaId: number, associateId: string, voteOption: VoteOption, afterVote: (error?: string) => void) => Promise<void>;
     refreshAgendas: () => Promise<void>;
 }
 
 const AgendaContext = createContext<AgendaContextValue | undefined>(undefined);
 
 export function AgendaProvider({ children }: { children: ReactNode }) {
-    const [agendas, setAgendas] = useState<Agenda[]>([]);
+    const [agendas, setAgendas] = useState<AgendaDTO[]>([]);
     const [alert, setAlert] = useState<AlertState>({ message: '', type: '' });
     const [status, setStatus] = useState<RequestStatus>('LOADING');
 
@@ -37,12 +37,12 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const createAgenda = async ({ title, description }: CreateAgendaDTO, callback: () => void) => {
+    const createAgenda = async ({ title, description }: CreateAgendaDTO, afterCreateAgenda: () => void) => {
         try {
             await agendaService.create({ title, description });
 
             refreshAgendas();
-            callback();
+            afterCreateAgenda();
 
             showAlert('Pauta cadastrada com sucesso!', 'success');
         } catch (error: any) {
@@ -68,8 +68,17 @@ export function AgendaProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const vote = (agendaId: number, associateId: string, choice: 'YES' | 'NO') => {
-        showAlert('Voto registrado com sucesso!', 'success');
+    const vote = async (agendaId: number, associateId: string, voteOption: VoteOption, afterVote: (error?: string) => void) => {
+        try {
+            await agendaService.vote(agendaId, associateId, voteOption);
+            afterVote();
+        } catch (error: any) {
+            if (error.type === 'VALIDATION_ERROR' && error.errors) {
+                afterVote(Object.values(error.errors).join("\n"));
+            } else {
+                showAlert('Erro ao votar em pauta.', 'danger');
+            }
+        }
     };
 
 

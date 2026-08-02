@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import VoteForm from './VoteForm';
-import AgendaResult from './AgendaResult';
-import type { Agenda } from '../types/agenda';
+import type { AgendaDTO } from '../types/agenda';
 import { useAgenda } from '../contexts/AgendaContext';
+import AgendaResult from './AgendaResult';
 
 interface AgendaCardProps {
-    agenda: Agenda;
+    agenda: AgendaDTO;
 }
 
 function AgendaCard({ agenda }: AgendaCardProps) {
@@ -24,12 +24,14 @@ function AgendaCard({ agenda }: AgendaCardProps) {
             const limitDate = Date.parse(agenda.limitDate);
 
             if (limitDate === null) {
+                refreshAgendas();
                 setRemainingTime('Expirado');
                 return;
             }
 
             const difference = limitDate - now;
             if (difference <= 0) {
+                refreshAgendas();
                 setRemainingTime('Expirado');
             } else {
                 const seconds = Math.floor((difference / 1000) % 60);
@@ -119,9 +121,9 @@ function AgendaCard({ agenda }: AgendaCardProps) {
                 )}
 
                 {/* 3. Sessão Encerrada */}
-                {/* {agenda.status === 'FINISHED' && (
-                    <AgendaResult votes={agenda.votes} />
-                )} */}
+                {agenda.status === 'FINISHED' && (
+                    <AgendaResult yesVotes={agenda.yesVotes} noVotes={agenda.noVotes} totalVotes={agenda.totalVotes} />
+                )}
             </div>
         </div>
     );

@@ -1,11 +1,12 @@
-export interface Agenda {
+export interface AgendaDTO {
     id: number;
     title: string;
     description: string;
     status: AgendaStatus;
-    duration: number;
     limitDate: string;
-    votes: Vote[];
+    yesVotes: number;
+    noVotes: number;
+    totalVotes: number;
 }
 
 export interface CreateAgendaDTO {
@@ -15,7 +16,4 @@ export interface CreateAgendaDTO {
 
 export type AgendaStatus = 'PENDING' | 'STARTED' | 'FINISHED';
 
-export interface Vote {
-    associateId: string;
-    value: 'YES' | 'NO';
-}
+export type VoteOption = 'YES' | 'NO';

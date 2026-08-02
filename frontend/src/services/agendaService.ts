@@ -1,4 +1,4 @@
-import type { CreateAgendaDTO } from '../types/agenda';
+import type { CreateAgendaDTO, VoteOption } from '../types/agenda';
 import apiClient from './api';
 
 export const agendaService = {
@@ -17,6 +17,12 @@ export const agendaService = {
     // open a new agenda session
     openSession: async (agendaId: number, duration: number) => {
         const response = await apiClient.post(`/agendas/${agendaId}/open`, { duration });
+        return response.data;
+    },
+
+    // vote on an agenda
+    vote: async (agendaId: number, associateId: string, voteOption: VoteOption) => {
+        const response = await apiClient.post(`/agendas/${agendaId}/vote`, { associateId, option: voteOption });
         return response.data;
     },
 };
