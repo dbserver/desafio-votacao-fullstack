@@ -20,16 +20,10 @@ function AgendaCard({ agenda }: AgendaCardProps) {
 
         const updateTimer = () => {
             const now = new Date().getTime();
-
-            const limitDate = Date.parse(agenda.limitDate);
-
-            if (limitDate === null) {
-                refreshAgendas();
-                setRemainingTime('Expirado');
-                return;
-            }
+            const limitDate = new Date(`${agenda.limitDate}Z`).getTime();
 
             const difference = limitDate - now;
+
             if (difference <= 0) {
                 refreshAgendas();
                 setRemainingTime('Expirado');
