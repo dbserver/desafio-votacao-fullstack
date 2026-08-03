@@ -1,86 +1,74 @@
-# Votação
+# Deploy
 
-## Objetivo
+- Acessar raíz do projeto e rodar:
+  ```
+  docker compose up
+  ```
+- Acessar app na URL (frontend servido staticamente):
+  - http://localhost:8080
+- Consumo de endpoints na URL:
+  - http://localhost:8080/api/agendas
+  - http://localhost:8080/api/cpf
+- Acessar a documentação da API (Swagger)
+  - http://localhost:8080/swagger-ui/index.html
+- Executar testes
+  ```
+  docker compose -f docker-compose.test.yml up --abort-on-container-exit
+  ```
 
-No cooperativismo, cada associado possui um voto e as decisões são tomadas em assembleias, por votação. Imagine que você deve criar uma solução we para gerenciar e participar dessas sessões de votação.
-Essa solução deve ser executada na nuvem e promover as seguintes funcionalidades através de uma API REST / Front:
+### Considerações
+- O state de uma pauta é derivado da data de encerramento das votações, então achei melhor calcular o state pela data em vez de utilizar uma coluna no banco de dados já que isso poderia introduzir problemas:
+  - Tornaria necessário uma rotina de agendamento para atualizar o state quando a data limite chegar
+  - Poderia haver inconsistência entre data de encerramento <> state
+- Para calcular o resultado consolidado das votações, criado uma @Query para não ter que carregar todas as votações em memória para fazer a consolidação
+- Escrito erros em console com LoggingHandler e GlobalExceptionHandler, o ideal seria gravar em Syslog.
+- O cálculo do state de uma pauta foi encapsulado em regra de negócio, o mesmo deveria ter sido feito para validar um associateId e se uma pauta pode receber votações.
 
-- Cadastrar uma nova pauta
-- Abrir uma sessão de votação em uma pauta (a sessão de votação deve ficar aberta por
-  um tempo determinado na chamada de abertura ou 1 minuto por default)
-- Receber votos dos associados em pautas (os votos são apenas 'Sim'/'Não'. Cada associado
-  é identificado por um id único e pode votar apenas uma vez por pauta)
-- Contabilizar os votos e dar o resultado da votação na pauta
+### Ferramentas utilizadas
+| Tecnologia | Descrição |
+|---|---|
+| Flyway | Migração do banco de dados |
+| JUnit e Mockito | Testes automatizados |
+| Swagger | Documentação da API |
+| React | Frontend |
+| Docker | Deploy |
 
-Para fins de exercício, a segurança das interfaces pode ser abstraída e qualquer chamada para as interfaces pode ser considerada como autorizada. A solução deve ser construída em java com Spring-boot e Angular/React conforme orientação, mas os frameworks e bibliotecas são de livre escolha (desde que não infrinja direitos de uso).
-
-É importante que as pautas e os votos sejam persistidos e que não sejam perdidos com o restart da aplicação.
-
-## Como proceder
-
-Por favor, realize o FORK desse repositório e implemente sua solução no FORK em seu repositório GItHub, ao final, notifique da conclusão para que possamos analisar o código implementado.
-
-Lembre de deixar todas as orientações necessárias para executar o seu código.
-
-### Tarefas bônus
-
-- Tarefa Bônus 1 - Integração com sistemas externos
-  - Criar uma Facade/Client Fake que retorna aleátoriamente se um CPF recebido é válido ou não.
-  - Caso o CPF seja inválido, a API retornará o HTTP Status 404 (Not found). Você pode usar geradores de CPF para gerar CPFs válidos
-  - Caso o CPF seja válido, a API retornará se o usuário pode (ABLE_TO_VOTE) ou não pode (UNABLE_TO_VOTE) executar a operação. Essa operação retorna resultados aleatórios, portanto um mesmo CPF pode funcionar em um teste e não funcionar no outro.
-
+### Tarefa Bônus 1 - Integração com sistemas externos
+- Implementado validador de CPF no endpoint 
+  - POST http://localhost:8080/api/cpf body: { "cpf": "...." }
+- Exemplo:
 ```
-// CPF Ok para votar
-{
-    "status": "ABLE_TO_VOTE
-}
-// CPF Nao Ok para votar - retornar 404 no client tb
-{
-    "status": "UNABLE_TO_VOTE
-}
+curl -X POST http://localhost:8080/api/cpf \ -H "Content-Type: application/json" \ -d '{ "cpf": "123.456.789-09" }'
 ```
-
-Exemplos de retorno do serviço
 
 ### Tarefa Bônus 2 - Performance
-
-- Imagine que sua aplicação possa ser usada em cenários que existam centenas de
-  milhares de votos. Ela deve se comportar de maneira performática nesses
-  cenários
-- Testes de performance são uma boa maneira de garantir e observar como sua
-  aplicação se comporta
+- O primeiro gargalo seria a quantidade elevada de operações de INSERT no banco de dados. Utilizando Kafka, a requisição poderia ser enviada para uma fila de processamento assíncrona, permitindo que as requisições HTTP não fiquem aguardando a conclusão do INSERT no banco.
+- O segundo gargalo seria o grande volume de requisições HTTP simultâneas. Normalmente, cada requisição consome uma thread durante o processamento. Com Spring WebFlux e programação reativa, é possível processar um número maior de requisições concorrentes utilizando um modelo não bloqueante, processando a requisição e encaminhando o voto para o Kafka sem manter threads ocupadas enquanto aguardam operações de I/O.
+- Exemplo da implementação
+```
+    public Mono<Void> vote(VotingDTO voteDTO) {
+        return Mono.fromFuture(
+                kafkaTemplate.send(
+                        "votes-topic",
+                        voteDTO.associateId(),
+                        voteDTO
+                ).completable()
+        ).then();
+    }
+```
 
 ### Tarefa Bônus 3 - Versionamento da API
+- Versionamento de URI
+```
+GET /api/v1/agendas
+GET /api/v2/agendas
+```
 
-○ Como você versionaria a API da sua aplicação? Que estratégia usar?
+```
+@RequestMapping("/api/v1/agendas")
+public class AgendasControllerV1
 
-## O que será analisado
+@RequestMapping("/api/v2/agendas")
+public class AgendasControllerV2
+```
 
-- Simplicidade no design da solução (evitar over engineering)
-- Organização do código
-- Arquitetura do projeto
-- Boas práticas de programação (manutenibilidade, legibilidade etc)
-- Possíveis bugs
-- Tratamento de erros e exceções
-- Explicação breve do porquê das escolhas tomadas durante o desenvolvimento da solução
-- Uso de testes automatizados e ferramentas de qualidade
-- Limpeza do código
-- Documentação do código e da API
-- Logs da aplicação
-- Mensagens e organização dos commits
-- Testes
-- Layout responsivo
-
-## Dicas
-
-- Teste bem sua solução, evite bugs
-
-  Observações importantes
-- Não inicie o teste sem sanar todas as dúvidas
-- Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
-  deixe claro caso haja instruções especiais para execução do mesmo
-  Classificação da informação: Uso Interno
-
-
-
-# desafio-votacao
