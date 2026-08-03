@@ -1,0 +1,9 @@
+services:
+  backend-test:
+    image: maven:3.9-eclipse-temurin-25
+    container_name: backend-test
+    working_dir: /backend
+    volumes:
+      - ./backend:/backend
+      - ~/.m2:/root/.m2
+    command: mvn clean test
