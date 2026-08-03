@@ -4,6 +4,8 @@
   ```
   docker compose up
   ```
+- Acessar app na URL (frontend servido staticamente):
+  - http://localhost:8080
 - Consumo de endpoints na URL:
   - http://localhost:8080/api/agendas
   - http://localhost:8080/api/cpf
