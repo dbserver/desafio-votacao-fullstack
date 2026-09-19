@@ -1,0 +1,6 @@
+CREATE TABLE pauta (
+    id BIGSERIAL PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    descricao TEXT,
+    criada_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
