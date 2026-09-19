@@ -41,7 +41,7 @@ class PautaControllerTest {
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.titulo").value("Reforma do estatuto"))
         .andExpect(jsonPath("$.descricao").value("Aprovar a nova redação do estatuto"))
-        .andExpect(jsonPath("$.criadoEm").exists());
+        .andExpect(jsonPath("$.criadaEm").exists());
 
     verify(pautaService).create(new CriarPautaRequest("Reforma do estatuto", "Aprovar a nova redação do estatuto"));
   }
