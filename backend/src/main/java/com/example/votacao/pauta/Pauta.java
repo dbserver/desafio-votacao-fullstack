@@ -23,7 +23,8 @@ public class Pauta {
   @Column(nullable = false)
   private String descricao;
 
-  private Instant criada_em;
+  @Column(name = "criada_em")
+  private Instant criadaEm;
 
   protected Pauta() {
   }
@@ -31,7 +32,7 @@ public class Pauta {
   public Pauta(String titulo, String descricao) {
     this.titulo = titulo;
     this.descricao = descricao;
-    this.criada_em = Instant.now();
+    this.criadaEm = Instant.now();
   }
 
   public Long getId() {
@@ -47,7 +48,7 @@ public class Pauta {
   }
 
   public Instant getCriadaEm() {
-    return criada_em;
+    return criadaEm;
   }
 
 }
