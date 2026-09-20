@@ -19,6 +19,9 @@ import jakarta.validation.ValidatorFactory;
 
 class CriarAssociadoRequestTest {
 
+  private static final String NOME = "Maria";
+  private static final String CPF = "52998224725";
+
   private static ValidatorFactory factory;
   private static Validator validator;
 
@@ -34,15 +37,15 @@ class CriarAssociadoRequestTest {
   }
 
   @Test
-  @DisplayName("Deve aceitar nome válido")
-  void deveAceitarNomeValido() {
-    assertThat(validator.validate(new CriarAssociadoRequest("Maria"))).isEmpty();
+  @DisplayName("Deve aceitar nome e CPF válidos")
+  void deveAceitarAssociadoValido() {
+    assertThat(validator.validate(new CriarAssociadoRequest(NOME, CPF))).isEmpty();
   }
 
   @Test
   @DisplayName("Deve aceitar nome com exatamente 255 caracteres")
   void deveAceitarNomeNoLimite() {
-    assertThat(validator.validate(new CriarAssociadoRequest("a".repeat(255)))).isEmpty();
+    assertThat(validator.validate(new CriarAssociadoRequest("a".repeat(255), CPF))).isEmpty();
   }
 
   @ParameterizedTest
@@ -50,7 +53,7 @@ class CriarAssociadoRequestTest {
   @ValueSource(strings = { "   ", "\t", "\n" })
   @DisplayName("Deve rejeitar nome nulo, vazio ou em branco")
   void deveRejeitarNomeEmBranco(String nome) {
-    Set<ConstraintViolation<CriarAssociadoRequest>> violacoes = validator.validate(new CriarAssociadoRequest(nome));
+    Set<ConstraintViolation<CriarAssociadoRequest>> violacoes = validator.validate(new CriarAssociadoRequest(nome, CPF));
 
     assertThat(violacoes).extracting(ConstraintViolation::getMessage).containsExactly("Nome é obrigatório");
   }
@@ -59,9 +62,33 @@ class CriarAssociadoRequestTest {
   @DisplayName("Deve rejeitar nome com mais de 255 caracteres")
   void deveRejeitarNomeMuitoLongo() {
     Set<ConstraintViolation<CriarAssociadoRequest>> violacoes = validator
-        .validate(new CriarAssociadoRequest("a".repeat(256)));
+        .validate(new CriarAssociadoRequest("a".repeat(256), CPF));
 
     assertThat(violacoes).extracting(ConstraintViolation::getMessage)
         .containsExactly("Nome deve ter no máximo 255 caracteres");
+  }
+
+  @Test
+  @DisplayName("Deve aceitar CPF com pontuação")
+  void deveAceitarCpfFormatado() {
+    assertThat(validator.validate(new CriarAssociadoRequest(NOME, "529.982.247-25"))).isEmpty();
+  }
+
+  @ParameterizedTest
+  @NullAndEmptySource
+  @DisplayName("Deve rejeitar CPF nulo ou vazio")
+  void deveRejeitarCpfAusente(String cpf) {
+    Set<ConstraintViolation<CriarAssociadoRequest>> violacoes = validator.validate(new CriarAssociadoRequest(NOME, cpf));
+
+    assertThat(violacoes).extracting(ConstraintViolation::getMessage).contains("CPF é obrigatório");
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = { "12345678900", "11111111111", "5299822472", "abc" })
+  @DisplayName("Deve rejeitar CPF com dígitos verificadores ou formato inválidos")
+  void deveRejeitarCpfInvalido(String cpf) {
+    Set<ConstraintViolation<CriarAssociadoRequest>> violacoes = validator.validate(new CriarAssociadoRequest(NOME, cpf));
+
+    assertThat(violacoes).extracting(ConstraintViolation::getMessage).containsExactly("CPF inválido");
   }
 }
