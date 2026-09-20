@@ -1,0 +1,31 @@
+.sessao-card__aviso {
+  margin: 0 0 1rem;
+  color: var(--cor-texto-suave);
+}
+
+.sessao-card__status {
+  margin: 0 0 1rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+}
+
+.sessao-card__status--aberta {
+  color: var(--cor-primaria);
+  font-variant-numeric: tabular-nums;
+}
+
+.sessao-card__periodo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.sessao-card__periodo dt {
+  color: var(--cor-texto-suave);
+}
+
+.sessao-card__periodo dd {
+  margin: 0;
+}

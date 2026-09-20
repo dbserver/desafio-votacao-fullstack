@@ -13,6 +13,14 @@ export const usePautas = () => {
   })
 }
 
+export const usePauta = (pautaId: number) => {
+  return useQuery({
+    queryKey: pautaKeys.todas,
+    queryFn: listarPautas,
+    select: (pautas) => pautas.find((pauta) => pauta.id === pautaId),
+  })
+}
+
 export const useCriarPauta = () => {
   const queryClient = useQueryClient()
 
