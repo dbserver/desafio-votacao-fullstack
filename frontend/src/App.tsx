@@ -3,8 +3,9 @@ import type { PropsWithChildren } from "react";
 import { Toaster } from "sonner";
 import { Router } from "./router";
 
+const queryClient = new QueryClient();
+
 function App({children}: PropsWithChildren) {
-  const queryClient = new QueryClient();
 
   return (
       <QueryClientProvider client={queryClient}>
