@@ -22,6 +22,18 @@ export const criarAssociadoRequestSchema = z.object({
     ),
 });
 
+export const buscarPorCpfSchema = z.object({
+  cpf: z
+    .string()
+    .trim()
+    .refine(
+      (cpf) => somenteDigitos(cpf).length === 11,
+      "CPF deve ter 11 dígitos",
+    ),
+});
+
+export type BuscarPorCpf = z.infer<typeof buscarPorCpfSchema>;
+
 export type AssociadoResponse = z.infer<typeof associadoResponseSchema>;
 
 export type CriarAssociadoRequest = z.infer<typeof criarAssociadoRequestSchema>;

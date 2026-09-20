@@ -1,0 +1,30 @@
+.voto-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.voto-form__associado {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0;
+}
+
+.voto-form__cpf {
+  color: var(--cor-texto-suave);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.voto-form__trocar {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--cor-primaria);
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}

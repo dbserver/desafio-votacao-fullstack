@@ -1,8 +1,8 @@
 import { Link, useParams } from "react-router";
-import { Card } from "../components/ui/Card";
 import { Layout } from "../components/ui/Layout";
 import { usePauta } from "../features/pauta/hooks";
 import { SessaoCard } from "../features/sessao/components/SessaoCard";
+import { VotoCard } from "../features/voto/components/VotoCard";
 import { formatarDataHora } from "../lib/format";
 import "./PautaDetalhePage.css";
 
@@ -64,9 +64,7 @@ export const PautaDetalhePage = () => {
       <div className="pauta-detalhe__conteudo">
         <SessaoCard pautaId={pautaId} />
 
-        <Card title="Votação">
-          <p className="pauta-detalhe__aviso">Em breve.</p>
-        </Card>
+        <VotoCard pautaId={pautaId} />
       </div>
     </Layout>
   );

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "../../../components/ui/Button";
 import { Form, FormActions } from "../../../components/ui/Form";
 import { TextField } from "../../../components/ui/TextField";
+import { cpfMask, withMask } from "../../../lib/mask";
 import { useCriarAssociado } from "../hooks";
 import {
   criarAssociadoRequestSchema,
@@ -22,6 +23,8 @@ export const AssociadoForm = () => {
     resolver: zodResolver(criarAssociadoRequestSchema),
     defaultValues: { nome: "", cpf: "" },
   });
+
+  const { onChange, ...cpf } = register("cpf");
 
   const onSubmit = handleSubmit(async (request) => {
     try {
@@ -52,7 +55,8 @@ export const AssociadoForm = () => {
         placeholder="529.982.247-25"
         inputMode="numeric"
         error={errors.cpf?.message}
-        {...register("cpf")}
+        onChange={withMask(cpfMask, onChange)}
+        {...cpf}
       />
 
       <FormActions>
