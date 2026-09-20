@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { somenteDigitos } from "../../lib/cpf";
+import { somenteDigitos } from "../../lib/format";
 
 export const associadoResponseSchema = z.object({
   id: z.number(),

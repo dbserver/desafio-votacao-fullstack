@@ -1,4 +1,4 @@
-import { formatarCpf } from "../../../lib/cpf";
+import { formatarCpf } from "../../../lib/format";
 import { useAssociados } from "../hooks";
 import "./AssociadoList.css";
 

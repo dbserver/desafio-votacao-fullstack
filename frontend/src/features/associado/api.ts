@@ -1,4 +1,4 @@
-import { somenteDigitos } from "../../lib/cpf";
+import { somenteDigitos } from "../../lib/format";
 import { http } from "../../lib/http";
 import {
   associadoResponseSchema,
