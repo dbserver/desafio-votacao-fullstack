@@ -76,14 +76,30 @@ Exemplos de retorno do serviço
 - Teste bem sua solução, evite bugs
 
   Observações importantes
+
 - Não inicie o teste sem sanar todas as dúvidas
 - Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
   deixe claro caso haja instruções especiais para execução do mesmo
   Classificação da informação: Uso Interno
 
-
-
 # desafio-votacao
+
+## Como rodar
+
+O jeito mais simples é subir tudo com Docker, na raiz do projeto:
+
+```bash
+docker compose up --build
+```
+
+Isso sobe o banco, o backend e o frontend:
+
+| O quê    | Endereço                                           |
+| -------- | -------------------------------------------------- |
+| Frontend | http://localhost:3000                              |
+| API      | http://localhost:8081/api/v1                       |
+| Swagger  | http://localhost:8081/swagger-ui.html              |
+| Postgres | localhost:5436 (usuário, senha e banco: `votacao`) |
 
 ## Versionamento da API
 
