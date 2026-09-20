@@ -2,24 +2,20 @@ spring:
   application:
     name: desafio-votacao
   datasource:
-    # Salva os dados em arquivo local na pasta ./data/votacao
-    url: jdbc:h2:mem:testdb
-    driverClassName: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:postgresql://localhost:5432/votacao
+    username: votacao
+    password: votacao
+    driverClassName: org.postgresql.Driver
     hikari:
       maximum-pool-size: 50
       minimum-idle: 10
       idle-timeout: 30000
-      connection-timeout: 20000 
+      connection-timeout: 20000
   h2:
     console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: true
+      enabled: false
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
