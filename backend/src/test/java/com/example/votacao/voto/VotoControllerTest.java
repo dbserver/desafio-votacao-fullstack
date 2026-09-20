@@ -53,7 +53,7 @@ class VotoControllerTest {
     sessao = new Sessao(pauta, Duration.ofMinutes(1));
     ReflectionTestUtils.setField(sessao, "id", 1L);
 
-    associado = new Associado("Associado Fulano");
+    associado = new Associado("Associado Fulano", "52998224725");
     ReflectionTestUtils.setField(associado, "id", 3L);
   }
 

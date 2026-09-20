@@ -25,6 +25,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.example.votacao.associado.Associado;
 import com.example.votacao.associado.AssociadoRepository;
+import com.example.votacao.cpf.CpfClient;
+import com.example.votacao.cpf.StatusCpf;
 import com.example.votacao.pauta.Pauta;
 import com.example.votacao.sessao.Sessao;
 import com.example.votacao.sessao.SessaoService;
@@ -38,6 +40,7 @@ class VotoServiceTest {
   private static final Long PAUTA_ID = 4L;
   private static final Long SESSAO_ID = 1L;
   private static final Long ASSOCIADO_ID = 3L;
+  private static final String CPF = "52998224725";
 
   @Mock
   private VotoRepository votoRepository;
@@ -47,6 +50,9 @@ class VotoServiceTest {
 
   @Mock
   private SessaoService sessaoService;
+
+  @Mock
+  private CpfClient cpfClient;
 
   @InjectMocks
   private VotoService votoService;
@@ -59,7 +65,7 @@ class VotoServiceTest {
     pauta = new Pauta("Reforma do estatuto", "Aprovar a nova redação");
     ReflectionTestUtils.setField(pauta, "id", PAUTA_ID);
 
-    associado = new Associado("Associado Fulano");
+    associado = new Associado("Associado Fulano", CPF);
     ReflectionTestUtils.setField(associado, "id", ASSOCIADO_ID);
   }
 
@@ -70,6 +76,7 @@ class VotoServiceTest {
     when(sessaoService.getByPautaId(PAUTA_ID)).thenReturn(sessao);
     when(associadoRepository.findById(ASSOCIADO_ID)).thenReturn(Optional.of(associado));
     when(votoRepository.existsBySessaoIdAndAssociadoId(SESSAO_ID, ASSOCIADO_ID)).thenReturn(false);
+    when(cpfClient.verificar(CPF)).thenReturn(StatusCpf.ABLE_TO_VOTE);
     when(votoRepository.saveAndFlush(any(Voto.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     Voto voto = votoService.create(PAUTA_ID, new CriarVotoRequest(ASSOCIADO_ID, OpcaoVoto.SIM));
@@ -133,6 +140,37 @@ class VotoServiceTest {
         .isInstanceOf(ConflitoException.class)
         .hasMessage("Associado já votou nesta pauta");
 
+    verify(cpfClient, never()).verificar(any());
+    verify(votoRepository, never()).saveAndFlush(any());
+  }
+
+  @Test
+  @DisplayName("Deve lançar exceção quando o CPF do associado for inválido")
+  void deveRejeitarCpfInvalido() {
+    when(sessaoService.getByPautaId(PAUTA_ID)).thenReturn(sessaoAberta());
+    when(associadoRepository.findById(ASSOCIADO_ID)).thenReturn(Optional.of(associado));
+    when(votoRepository.existsBySessaoIdAndAssociadoId(SESSAO_ID, ASSOCIADO_ID)).thenReturn(false);
+    when(cpfClient.verificar(CPF)).thenThrow(new RecursoNaoEncontradoException("CPF inválido"));
+
+    assertThatThrownBy(() -> votoService.create(PAUTA_ID, new CriarVotoRequest(ASSOCIADO_ID, OpcaoVoto.SIM)))
+        .isInstanceOf(RecursoNaoEncontradoException.class)
+        .hasMessage("CPF inválido");
+
+    verify(votoRepository, never()).saveAndFlush(any());
+  }
+
+  @Test
+  @DisplayName("Deve lançar exceção quando o associado não estiver apto a votar")
+  void deveRejeitarAssociadoInapto() {
+    when(sessaoService.getByPautaId(PAUTA_ID)).thenReturn(sessaoAberta());
+    when(associadoRepository.findById(ASSOCIADO_ID)).thenReturn(Optional.of(associado));
+    when(votoRepository.existsBySessaoIdAndAssociadoId(SESSAO_ID, ASSOCIADO_ID)).thenReturn(false);
+    when(cpfClient.verificar(CPF)).thenReturn(StatusCpf.UNABLE_TO_VOTE);
+
+    assertThatThrownBy(() -> votoService.create(PAUTA_ID, new CriarVotoRequest(ASSOCIADO_ID, OpcaoVoto.SIM)))
+        .isInstanceOf(RecursoNaoEncontradoException.class)
+        .hasMessage("Associado não está apto a votar");
+
     verify(votoRepository, never()).saveAndFlush(any());
   }
 
@@ -142,6 +180,7 @@ class VotoServiceTest {
     when(sessaoService.getByPautaId(PAUTA_ID)).thenReturn(sessaoAberta());
     when(associadoRepository.findById(ASSOCIADO_ID)).thenReturn(Optional.of(associado));
     when(votoRepository.existsBySessaoIdAndAssociadoId(SESSAO_ID, ASSOCIADO_ID)).thenReturn(false);
+    when(cpfClient.verificar(CPF)).thenReturn(StatusCpf.ABLE_TO_VOTE);
     when(votoRepository.saveAndFlush(any(Voto.class)))
         .thenThrow(new DataIntegrityViolationException("uk_voto_sessao_associado"));
 
