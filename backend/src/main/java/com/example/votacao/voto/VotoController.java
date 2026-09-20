@@ -34,7 +34,7 @@ public class VotoController {
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "Voto registrado"),
       @ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content),
-      @ApiResponse(responseCode = "404", description = "Sessão ou associado não encontrado", content = @Content),
+      @ApiResponse(responseCode = "404", description = "Sessão ou associado não encontrado, CPF inválido ou associado não apto a votar", content = @Content),
       @ApiResponse(responseCode = "409", description = "Sessão encerrada ou associado já votou", content = @Content)
   })
   @PostMapping
