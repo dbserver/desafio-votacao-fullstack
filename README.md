@@ -76,11 +76,41 @@ Exemplos de retorno do serviço
 - Teste bem sua solução, evite bugs
 
   Observações importantes
+
 - Não inicie o teste sem sanar todas as dúvidas
 - Iremos executar a aplicação para testá-la, cuide com qualquer dependência externa e
   deixe claro caso haja instruções especiais para execução do mesmo
   Classificação da informação: Uso Interno
 
-
-
 # desafio-votacao
+
+## Como rodar
+
+O jeito mais simples é subir tudo com Docker, na raiz do projeto:
+
+```bash
+docker compose up --build
+```
+
+Isso sobe o banco, o backend e o frontend:
+
+| O quê    | Endereço                                           |
+| -------- | -------------------------------------------------- |
+| Frontend | http://localhost:3000                              |
+| API      | http://localhost:8081/api/v1                       |
+| Swagger  | http://localhost:8081/swagger-ui.html              |
+| Postgres | localhost:5436 (usuário, senha e banco: `votacao`) |
+
+## Versionamento da API
+
+Optei por colocar a versão na URL: todas as rotas começam com `/api/v1`. É a forma mais simples de ver e testar, já que a versão aparece no Swagger, no navegador e nos logs, sem depender de header.
+
+Uma nova versão (`/api/v2`) só seria criada para mudanças que quebram quem já consome a API, como remover ou renomear um campo ou mudar uma regra. Adicionar um campo opcional ou um endpoint novo continua na v1.
+
+Se a v2 chegar, as duas versões rodam juntas por um tempo: os controllers novos reaproveitam os mesmos services, e a v1 fica marcada como descontinuada até os clientes migrarem.
+
+## Validação de CPF
+
+O associado é cadastrado com CPF, e o cadastro já recusa CPFs com dígitos verificadores errados. Na hora do voto, o CPF passa por um client fake (`FakeCpfClient`) que, como pede o enunciado, responde de forma aleatória. Se o CPF sair inválido ou o associado sair como `UNABLE_TO_VOTE`, o voto é recusado com 404. Por isso, é normal um mesmo associado conseguir votar numa tentativa e ser recusado na seguinte.
+
+O `VotoService` depende da interface `CpfClient`, e não do fake. Para usar um serviço real, basta criar outra implementação.

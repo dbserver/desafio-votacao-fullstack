@@ -1,0 +1,27 @@
+.voto-resumo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.voto-resumo__item {
+  flex: 1;
+  min-width: 5rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.voto-resumo__item dt {
+  font-size: 0.8125rem;
+  color: var(--cor-texto-suave);
+}
+
+.voto-resumo__item dd {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

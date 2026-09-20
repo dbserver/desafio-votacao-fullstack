@@ -1,0 +1,47 @@
+services:
+  database:
+    image: postgres:17-alpine
+    container_name: votacao-db
+    environment:
+      POSTGRES_DB: votacao
+      POSTGRES_USER: votacao
+      POSTGRES_PASSWORD: votacao
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U votacao -d votacao"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    container_name: votacao-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://database:5432/votacao
+      DB_USERNAME: votacao
+      DB_PASSWORD: votacao
+    ports:
+      - "8081:8081"
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: votacao-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

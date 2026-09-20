@@ -1,0 +1,11 @@
+.card {
+  padding: 1.25rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 0.75rem;
+  background-color: var(--cor-superficie);
+}
+
+.card__title {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+}
