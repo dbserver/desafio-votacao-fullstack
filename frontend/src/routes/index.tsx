@@ -9,9 +9,11 @@ import { useSessaoStore } from '@/stores/useSessaoStore';
 import type {
   AbrirSessaoPayload,
   PautaComStatus,
+  RegistrarVotoPayload,
   //RegistrarVotoPayload,
   ResultadoVotacao,
 } from '@/types/domain';
+import { useVotoStore } from '@/stores/useVotoStore';
 
 export const router = createBrowserRouter([
   {
@@ -52,84 +54,82 @@ export const router = createBrowserRouter([
             },
           })),
       },
-      // {
-      //   path: ROUTES.votacao,
-      //   lazy: () =>
-      //     import('@/pages/VotacaoAssociado').then((module) => ({
-      //       Component: function VotacaoAssociadoRoute() {
-      //         const { pautas, fetchPautas, votar } = usePautaStore();
-      //         const { sessoes, fetchSessoes } = useSessaoStore();
-
-      //         useEffect(() => {
-      //           void fetchPautas();
-      //           void fetchSessoes();
-      //         }, [fetchPautas, fetchSessoes]);
-
-      //         // Filtra pautas que possuem sessão aberta em andamento no momento
-      //         const pautasAtivas = pautas.filter((pauta) => {
-      //           const sessao = sessoes.find((s) => s.pautaId === pauta.id);
-      //           if (!sessao) return false;
-
-      //           const agora = Date.now();
-      //           const inicio = new Date(sessao.dataAbertura).getTime();
-      //           const fim = new Date(sessao.dataEncerramento).getTime();
-
-      //           return agora >= inicio && agora <= fim && sessao.aberta;
-      //         });
-
-      //         return (
-      //           <module.VotacaoAssociado
-      //             pautasAtivas={pautasAtivas}
-      //             onVotar={async (payload: RegistrarVotoPayload) => {
-      //               await votar(payload.pautaId, payload.associadoId, payload.voto);
-      //             }}
-      //           />
-      //         );
-      //       },
-      //     })),
-      // },
       {
-        path: ROUTES.resultados,
+        path: ROUTES.votacao,
         lazy: () =>
-          import('@/pages/PainelResultados').then((module) => ({
-            Component: function PainelResultadosRoute() {
+          import('@/pages/VotacaoAssociado').then((module) => ({
+            Component: function VotacaoAssociadoRoute() {
               const { pautas, fetchPautas } = usePautaStore();
               const { sessoes, fetchSessoes } = useSessaoStore();
+              const { votar } = useVotoStore();
 
               useEffect(() => {
                 void fetchPautas();
                 void fetchSessoes();
               }, [fetchPautas, fetchSessoes]);
 
-              const resultados: ResultadoVotacao[] = pautas.map((p) => {
-                const sessao = sessoes.find((s) => s.pautaId === p.id);
-                const votosSim = 'votosSim' in p ? Number(p.votosSim) : 0;
-                const votosNao = 'votosNao' in p ? Number(p.votosNao) : 0;
-                const totalVotos = 'totalVotos' in p ? Number(p.totalVotos) : votosSim + votosNao;
+              // Filtra pautas que possuem sessão aberta e em andamento no momento
+              const pautasAtivas = pautas.filter((pauta) => {
+                const sessao = sessoes.find((s) => s.pautaId === pauta.id);
+                if (!sessao) return false;
 
-                let resultado: ResultadoVotacao['resultado'] = 'EMPATE';
-                if (votosSim > votosNao) resultado = 'APROVADA';
-                if (votosNao > votosSim) resultado = 'REPROVADA';
+                const agora = Date.now();
+                const inicio = new Date(sessao.dataAbertura).getTime();
+                const fim = new Date(sessao.dataEncerramento).getTime();
 
-                // Determina se a sessão encerrou verificando a ausência da sessão ou estouramento do horário de encerramento
-                const sessaoEncerrada =
-                  !sessao || new Date().getTime() > new Date(sessao.dataEncerramento).getTime();
-
-                return {
-                  pautaId: p.id,
-                  tituloPauta: p.titulo,
-                  votosSim,
-                  votosNao,
-                  totalVotos,
-                  resultado,
-                  sessaoEncerrada,
-                };
+                return agora >= inicio && agora <= fim && sessao.aberta;
               });
 
-              return <module.PainelResultados resultados={resultados} />;
+              return (
+                <module.VotacaoAssociado
+                  pautasAtivas={pautasAtivas}
+                  onVotar={async (payload: RegistrarVotoPayload) => {
+                    await votar(payload);
+                  }}
+                />
+              );
             },
           })),
       },
+      {
+        path: ROUTES.resultados,
+        lazy: () =>
+          import('@/pages/PainelResultados').then((module) => ({
+            Component: function PainelResultadosRoute() {
+              const { pautas, resultados, fetchAllResultados, loading } = usePautaStore();
+
+              useEffect(() => {
+                void fetchAllResultados();
+              }, [fetchAllResultados]);
+
+              // Mapeia os dados usando o dicionário 'resultados' alimentado pelo endpoint
+              const listaResultados: ResultadoVotacao[] = pautas.map((pauta) => {
+                const resultadoApi = resultados[pauta.id];
+
+                return {
+                  pautaId: pauta.id,
+                  tituloPauta: pauta.titulo,
+                  descricaoPauta: pauta.descricao,
+                  votosSim: resultadoApi?.votosSim ?? 0,
+                  votosNao: resultadoApi?.votosNao ?? 0,
+                  totalVotos: resultadoApi?.totalVotos ?? 0,
+                  resultado: resultadoApi?.resultado ?? 'SEM_VOTOS',
+                  sessaoEncerrada: resultadoApi?.sessaoEncerrada ?? false,
+                };
+              });
+
+              return (
+                <module.PainelResultados
+                  resultados={listaResultados}
+                  loading={loading}
+                  onRefresh={() => {
+                    void fetchAllResultados();
+                  }}
+                />
+              );
+            },
+          })),
+      }
     ],
   },
   {

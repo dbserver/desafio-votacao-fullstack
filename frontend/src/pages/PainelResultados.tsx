@@ -1,113 +1,131 @@
-import { BarChart3 } from 'lucide-react';
+import { CheckCircle2, MinusCircle, RefreshCw, XCircle } from 'lucide-react';
 
 import { FeedbackMessage } from '@/components/ui/FeedbackMessage';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { ProgressBar } from '@/components/ui/ProgressBar';
-import type { ResultadoStatus, ResultadoVotacao } from '@/types/domain';
+import { buttonSecondary } from '@/components/ui/styles';
+import type { ResultadoVotacao } from '@/types/domain';
 import { cn } from '@/utils/cn';
 
 interface PainelResultadosProps {
   resultados: ResultadoVotacao[];
   loading?: boolean;
   error?: string | null;
+  onRefresh?: () => void;
 }
 
-const RESULTADO_STYLES: Record<ResultadoStatus, { label: string; className: string }> = {
-  APROVADA: { label: 'Aprovada', className: 'bg-green-50 text-green-700 ring-green-200' },
-  REPROVADA: { label: 'Reprovada', className: 'bg-red-50 text-red-700 ring-red-200' },
-  EMPATE: { label: 'Empate', className: 'bg-amber-50 text-amber-700 ring-amber-200' },
-  'SESSÃO EM ANDAMENTO': {
-    label: 'Em andamento',
-    className: 'bg-blue-50 text-blue-700 ring-blue-200',
-  },
-};
-
-function ResultadoBadge({ resultado }: { resultado: ResultadoStatus }) {
-  const { label, className } = RESULTADO_STYLES[resultado];
-
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1',
-        className,
-      )}
-    >
-      {label}
-    </span>
-  );
-}
-
-/** Painel visual de métricas de votação por pauta. */
 export function PainelResultados({
   resultados,
   loading = false,
   error = null,
+  onRefresh,
 }: PainelResultadosProps) {
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-8">
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <BarChart3 size={24} className="text-neutral-400" aria-hidden="true" />
-          <h2 className="text-2xl font-bold text-neutral-900">Resultados</h2>
+    <div className="mx-auto flex max-w-4xl flex-col gap-8">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-neutral-900">Resultados da Votação</h2>
+          <p className="mt-1 text-sm text-neutral-500">
+            Acompanhe a apuração dos votos e o placar de cada pauta.
+          </p>
         </div>
-        <p className="text-sm text-neutral-500">Acompanhe a apuração dos votos de cada pauta.</p>
-        {error && <FeedbackMessage variant="error" message={error} />}
+
+        {onRefresh && (
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={loading}
+            className={cn(buttonSecondary, 'self-start sm:self-auto')}
+          >
+            <RefreshCw size={16} className={cn(loading && 'animate-spin')} />
+            Atualizar
+          </button>
+        )}
       </div>
 
-      {loading ? (
+      {error && <FeedbackMessage variant="error" message={error} />}
+
+      {loading && resultados.length === 0 ? (
         <LoadingSpinner label="Carregando resultados…" />
       ) : resultados.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">
-          Nenhum resultado disponível ainda.
-        </p>
+        <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center text-neutral-500">
+          Nenhuma pauta cadastrada até o momento.
+        </div>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {resultados.map((resultado) => (
-            <li key={resultado.pautaId}>
-              <article className="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-xs">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-base font-semibold text-neutral-900">
-                    {resultado.tituloPauta}
-                  </h3>
-                  <ResultadoBadge resultado={resultado.resultado} />
+        <div className="flex flex-col gap-4">
+          {resultados.map((res) => {
+            const porcentagemSim =
+              res.totalVotos > 0 ? Math.round((res.votosSim / res.totalVotos) * 100) : 0;
+            const porcentagemNao =
+              res.totalVotos > 0 ? Math.round((res.votosNao / res.totalVotos) * 100) : 0;
+
+            const isEmAndamento =
+              !res.sessaoEncerrada || res.resultado === 'SESSÃO EM ANDAMENTO';
+
+            return (
+              <div
+                key={res.pautaId}
+                className="flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-xs"
+              >
+                <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
+                  <div>
+                    <h3 className="text-lg font-semibold text-neutral-900">{res.tituloPauta}</h3>
+                  </div>
+
+                  {/* Badge de Resultado */}
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
+                    {isEmAndamento ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-600" />
+                        Sessão em andamento
+                      </span>
+                    ) : res.resultado === 'APROVADA' ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                        <CheckCircle2 size={14} />
+                        Aprovada
+                      </span>
+                    ) : res.resultado === 'REPROVADA' ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+                        <XCircle size={14} />
+                        Reprovada
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                        <MinusCircle size={14} />
+                        Empate
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <ProgressBar
-                  sim={resultado.votosSim}
-                  nao={resultado.votosNao}
-                  label={`Votos da pauta ${resultado.tituloPauta}`}
-                />
+                {/* Placar de Votos e Barra Visual */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between text-xs font-medium text-neutral-600">
+                    <span>
+                      Sim: <strong className="text-emerald-600">{res.votosSim}</strong> ({porcentagemSim}%)
+                    </span>
+                    <span>
+                      Total de Votos: <strong>{res.totalVotos}</strong>
+                    </span>
+                    <span>
+                      Não: <strong className="text-red-600">{res.votosNao}</strong> ({porcentagemNao}%)
+                    </span>
+                  </div>
 
-                <dl className="grid grid-cols-3 gap-3 text-center">
-                  <div className="rounded-lg bg-neutral-50 p-3">
-                    <dt className="text-xs font-medium tracking-wide text-neutral-500 uppercase">
-                      Total
-                    </dt>
-                    <dd className="mt-1 text-lg font-semibold text-neutral-900">
-                      {resultado.totalVotos}
-                    </dd>
+                  <div className="flex h-3 w-full overflow-hidden rounded-full bg-neutral-100">
+                    <div
+                      style={{ width: `${porcentagemSim}%` }}
+                      className="bg-emerald-500 transition-all duration-300"
+                    />
+                    <div
+                      style={{ width: `${porcentagemNao}%` }}
+                      className="bg-red-500 transition-all duration-300"
+                    />
                   </div>
-                  <div className="rounded-lg bg-green-50 p-3">
-                    <dt className="text-xs font-medium tracking-wide text-green-600 uppercase">
-                      Sim
-                    </dt>
-                    <dd className="mt-1 text-lg font-semibold text-green-700">
-                      {resultado.votosSim}
-                    </dd>
-                  </div>
-                  <div className="rounded-lg bg-red-50 p-3">
-                    <dt className="text-xs font-medium tracking-wide text-red-600 uppercase">
-                      Não
-                    </dt>
-                    <dd className="mt-1 text-lg font-semibold text-red-700">
-                      {resultado.votosNao}
-                    </dd>
-                  </div>
-                </dl>
-              </article>
-            </li>
-          ))}
-        </ul>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

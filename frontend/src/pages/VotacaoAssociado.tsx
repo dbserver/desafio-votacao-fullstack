@@ -112,17 +112,31 @@ export function VotacaoAssociado({
       });
       setSuccess('Voto registrado com sucesso!');
       setVoto(null);
-    } catch (caughtError) {
-      setSubmitError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : 'Não foi possível registrar o voto. Tente novamente.',
-      );
+    } catch (caughtError: unknown) {
+      let errorMessage = 'Não foi possível registrar o voto. Tente novamente.';
+
+      if (
+        typeof caughtError === 'object' &&
+        caughtError !== null &&
+        'response' in caughtError
+      ) {
+        const errorResponse = caughtError as {
+          response?: { data?: { message?: string; error?: string } };
+        };
+
+        errorMessage =
+          errorResponse.response?.data?.message ||
+          errorResponse.response?.data?.error ||
+          errorMessage;
+      } else if (caughtError instanceof Error) {
+        errorMessage = caughtError.message;
+      }
+
+      setSubmitError(errorMessage);
     } finally {
       setSubmitting(false);
     }
   }
-
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8">
       <div className="flex flex-col gap-4">
