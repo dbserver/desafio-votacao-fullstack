@@ -1,0 +1,206 @@
+package com.dbserver.votacao.service;
+
+import com.dbserver.votacao.client.ElegibilidadeVoto;
+import com.dbserver.votacao.client.ValidadorCpfExternoClient;
+import com.dbserver.votacao.domain.Associado;
+import com.dbserver.votacao.domain.Pauta;
+import com.dbserver.votacao.domain.Sessao;
+import com.dbserver.votacao.domain.Voto;
+import com.dbserver.votacao.domain.enums.VotoEnum;
+import com.dbserver.votacao.dto.request.VotoRequestDto;
+import com.dbserver.votacao.dto.response.VotoResponseDto;
+import com.dbserver.votacao.exception.ConflitoException;
+import com.dbserver.votacao.exception.InabilitadoException;
+import com.dbserver.votacao.exception.RegraDeNegocioException;
+import com.dbserver.votacao.repository.SessaoRepository;
+import com.dbserver.votacao.repository.VotoRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+import com.dbserver.votacao.exception.ResourceNotFoundException;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class VotoServiceTest {
+
+    @Mock
+    private VotoRepository votoRepository;
+    @Mock
+    private SessaoRepository sessaoRepository;
+    @Mock
+    private PautaService pautaService;
+    @Mock
+    private AssociadoService associadoService;
+    @Mock
+    private ValidadorCpfExternoClient validadorCpfExternoClient;
+
+    @InjectMocks
+    private VotoService votoService;
+
+    @Test
+    @DisplayName("Deve registrar um voto com sucesso")
+    void deveRegistrarVotoComSucesso() {
+        UUID pautaId = UUID.randomUUID();
+        String cpf = "12345678901";
+        VotoRequestDto dto = new VotoRequestDto(cpf, VotoEnum.SIM);
+
+        Pauta pauta = Pauta.builder().id(pautaId).titulo("Pauta Teste").build();
+        Sessao sessao = Sessao.builder().dataFechamento(LocalDateTime.now().plusMinutes(10)).build();
+        Associado associado = Associado.builder().id(UUID.randomUUID()).cpf(cpf).build();
+
+        when(pautaService.buscarPorId(pautaId)).thenReturn(pauta);
+        when(sessaoRepository.findByPautaId(pautaId)).thenReturn(Optional.of(sessao));
+        when(validadorCpfExternoClient.verificarElegibilidade(cpf)).thenReturn(ElegibilidadeVoto.ABLE_TO_VOTE);
+        when(associadoService.buscarPorCpf(cpf)).thenReturn(associado);
+
+        when(votoRepository.saveAndFlush(any(Voto.class))).thenAnswer(i -> {
+            Voto v = i.getArgument(0);
+            v.setId(UUID.randomUUID());
+            v.setDataVoto(LocalDateTime.now());
+            return v;
+        });
+
+        VotoResponseDto response = votoService.registrarVoto(pautaId, dto);
+
+        assertNotNull(response);
+        assertEquals(VotoEnum.SIM, response.valor());
+        assertEquals(cpf, response.associadoCpf());
+        verify(votoRepository, times(1)).saveAndFlush(any(Voto.class));
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção se a sessão estiver encerrada")
+    void deveLancarExcecaoSessaoEncerrada() {
+        UUID pautaId = UUID.randomUUID();
+        VotoRequestDto dto = new VotoRequestDto("12345678901", VotoEnum.SIM);
+
+        Pauta pauta = Pauta.builder().id(pautaId).build();
+        Sessao sessao = Sessao.builder().dataFechamento(LocalDateTime.now().minusMinutes(5)).build();
+
+        when(pautaService.buscarPorId(pautaId)).thenReturn(pauta);
+        when(sessaoRepository.findByPautaId(pautaId)).thenReturn(Optional.of(sessao));
+
+        RegraDeNegocioException ex = assertThrows(RegraDeNegocioException .class, () -> votoService.registrarVoto(pautaId, dto));
+        assertEquals("A sessão de votação já está encerrada.", ex.getMessage());
+        verify(votoRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção se houver violação de duplicidade estrutural no banco (Race Condition / Voto Duplicado)")
+    void deveLancarExcecaoVotoDuplicadoViaConstraintDeBanco() {
+        UUID pautaId = UUID.randomUUID();
+        String cpf = "12345678901";
+        VotoRequestDto dto = new VotoRequestDto(cpf, VotoEnum.NAO);
+
+        Pauta pauta = Pauta.builder().id(pautaId).build();
+        Sessao sessao = Sessao.builder().dataFechamento(LocalDateTime.now().plusMinutes(10)).build();
+        Associado associado = Associado.builder().id(UUID.randomUUID()).cpf(cpf).build();
+
+        when(pautaService.buscarPorId(pautaId)).thenReturn(pauta);
+        when(sessaoRepository.findByPautaId(pautaId)).thenReturn(Optional.of(sessao));
+        when(validadorCpfExternoClient.verificarElegibilidade(cpf)).thenReturn(ElegibilidadeVoto.ABLE_TO_VOTE);
+        when(associadoService.buscarPorCpf(cpf)).thenReturn(associado);
+
+        when(votoRepository.saveAndFlush(any(Voto.class))).thenThrow(new DataIntegrityViolationException("uk_associado_pauta"));
+
+        ConflitoException ex = assertThrows(ConflitoException .class, () -> votoService.registrarVoto(pautaId, dto));
+        assertEquals("O associado já votou nesta pauta.", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção se associado não estiver apto a votar (UNABLE_TO_VOTE)")
+    void deveLancarExcecaoAssociadoInapto() {
+        UUID pautaId = UUID.randomUUID();
+        String cpf = "12345678901";
+        VotoRequestDto dto = new VotoRequestDto(cpf, VotoEnum.SIM);
+
+        Pauta pauta = Pauta.builder().id(pautaId).build();
+        Sessao sessao = Sessao.builder().dataFechamento(LocalDateTime.now().plusMinutes(10)).build();
+
+        when(pautaService.buscarPorId(pautaId)).thenReturn(pauta);
+        when(sessaoRepository.findByPautaId(pautaId)).thenReturn(Optional.of(sessao));
+
+        when(validadorCpfExternoClient.verificarElegibilidade(cpf)).thenReturn(ElegibilidadeVoto.UNABLE_TO_VOTE);
+
+        InabilitadoException ex = assertThrows(InabilitadoException.class,
+                () -> votoService.registrarVoto(pautaId, dto));
+
+        assertEquals("O associado não está apto a votar nesta pauta.", ex.getMessage());
+
+        verify(votoRepository, never()).save(any());
+        verify(associadoService, never()).buscarPorCpf(anyString());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando não existir sessão para a pauta")
+    void deveLancarExcecaoQuandoNaoExistirSessao() {
+        UUID pautaId = UUID.randomUUID();
+        String cpf = "12345678901";
+        VotoRequestDto dto = new VotoRequestDto(cpf, VotoEnum.SIM);
+
+        Pauta pauta = Pauta.builder().id(pautaId).titulo("Pauta Teste").build();
+
+        when(pautaService.buscarPorId(pautaId)).thenReturn(pauta);
+        when(sessaoRepository.findByPautaId(pautaId)).thenReturn(Optional.empty());
+
+        RegraDeNegocioException ex = assertThrows(RegraDeNegocioException.class,
+                () -> votoService.registrarVoto(pautaId, dto));
+
+        assertEquals("Não existe sessão de votação aberta para esta pauta.", ex.getMessage());
+        verify(pautaService, times(1)).buscarPorId(pautaId);
+        verify(sessaoRepository, times(1)).findByPautaId(pautaId);
+        verify(validadorCpfExternoClient, never()).verificarElegibilidade(anyString());
+        verify(votoRepository, never()).save(any(Voto.class));
+    }
+
+    @Test
+    @DisplayName("Deve propagar exceção quando a pauta não existir")
+    void deveLancarExcecaoQuandoPautaNaoExistir() {
+        UUID pautaId = UUID.randomUUID();
+        VotoRequestDto dto = new VotoRequestDto("12345678901", VotoEnum.SIM);
+
+        ResourceNotFoundException excecao = new ResourceNotFoundException("Pauta não encontrada");
+
+        when(pautaService.buscarPorId(pautaId)).thenThrow(excecao);
+
+        ResourceNotFoundException resultado = assertThrows(ResourceNotFoundException.class, () -> votoService.registrarVoto(pautaId, dto));
+
+        assertEquals("Pauta não encontrada", resultado.getMessage());
+        verifyNoInteractions(sessaoRepository);
+        verifyNoInteractions(associadoService);
+        verifyNoInteractions(validadorCpfExternoClient);
+        verifyNoInteractions(votoRepository);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando associado não existir")
+    void deveLancarExcecaoQuandoAssociadoNaoExistir() {
+        UUID pautaId = UUID.randomUUID();
+        String cpf = "12345678901";
+        VotoRequestDto dto = new VotoRequestDto(cpf, VotoEnum.SIM);
+
+        Pauta pauta = Pauta.builder().id(pautaId).build();
+        Sessao sessao = Sessao.builder().dataFechamento(LocalDateTime.now().plusMinutes(10)).build();
+
+        when(pautaService.buscarPorId(pautaId)).thenReturn(pauta);
+        when(sessaoRepository.findByPautaId(pautaId)).thenReturn(Optional.of(sessao));
+        when(validadorCpfExternoClient.verificarElegibilidade(cpf)).thenReturn(ElegibilidadeVoto.ABLE_TO_VOTE);
+        when(associadoService.buscarPorCpf(cpf)).thenThrow(new ResourceNotFoundException("Associado não encontrado"));
+
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class, () -> votoService.registrarVoto(pautaId, dto));
+
+        assertEquals("Associado não encontrado", ex.getMessage());
+        verify(associadoService, times(1)).buscarPorCpf(cpf);
+        verify(votoRepository, never()).save(any(Voto.class));
+    }
+}

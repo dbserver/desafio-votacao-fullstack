@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #059669; /* emerald-600 */
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
