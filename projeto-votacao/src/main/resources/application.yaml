@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: projeto-votacao
+  datasource:
+    url: jdbc:mysql://localhost:3306/db_projeto_votacao?createDatabaseIfNotExist=true
+    password: ${MYSQL_PASSWORD:$CDB1234r}
+    username: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
